@@ -37,32 +37,24 @@ outfile = sys.argv[-1]+'/'+sys.argv[0][:-3]+'_%s'%('mc' if not use_reco else 're
 print "%s output file = %s"%(sys.argv[0],outfile)
 my_proc.set_ana_output_file(outfile)
 
-# here set E-cut for Helper & Ana modules
-#This cut is applied in helper... ertool showers are not made if the energy of mcshower or reco shower
-#is below this threshold. This has to be above 0 or else the code may segfault. This is not a "physics cut".
-#Do not change this value unless you know what you are doing.
-Ecut = 50 # in MeV
-
-#nueCC beam
+#BITE filter
 eventfilter = fmwk.MC_dirt_Filter()
 
 LEEana = ertool.ERAnaLowEnergyExcess()
 LEEana.SetTreeName("dirt")
 #LEEana.SetDebug(False)
-LEEana.SetECut(Ecut)
+# LEEana.SetECut(Ecut)
 
 anaunit = GetERSelectionInstance()
 anaunit._mgr.ClearCfgFile()
-anaunit._mgr.AddCfgFile(os.environ['LARLITE_USERDEVDIR']+'/SelectionTool/ERTool/dat/ertool_default%s.cfg'%('_reco' if use_reco else ''))
-
-if use_reco:
-	anaunit.SetShowerProducer(False,'showerrecofuzzy')
-	anaunit.SetTrackProducer(False,'stitchkalmanhitcc')
+if not use_reco:
+	anaunit._mgr.AddCfgFile(os.environ['LARLITE_USERDEVDIR']+'/SelectionTool/ERTool/dat/ertool_default.cfg')
 else:
-	anaunit.SetShowerProducer(True,'mcreco')
-	anaunit.SetTrackProducer(True,'mcreco')
-
-anaunit.SetFlashProducer('opflash')
+	anaunit._mgr.AddCfgFile(os.environ['LARLITE_USERDEVDIR']+'/SelectionTool/ERTool/dat/ertool_default_emulated.cfg')
+	
+if use_reco:
+	anaunit.SetShowerProducer(False,'recoemu')
+	anaunit.SetTrackProducer(False,'recoemu')
 
 anaunit._mgr.AddAna(LEEana)
 # Add MC filter and analysis unit
