@@ -126,7 +126,7 @@ namespace ertool {
 						_is_simple = isInteractionSimple(daught, graph);
 						_dedx = data.Shower(daught.RecoID())._dedx;
 
-						/// Fills _dist_2wall and _dist_2wall_vtx
+						/// Fills _dist_2wall_shr and _dist_2wall_vtx
 						FillBITEVariables(singleE_shower, p);
 					}
 
@@ -285,6 +285,8 @@ namespace ertool {
 		_result_tree->Branch("_x_vtx", &_x_vtx, "x_vtx/D");
 		_result_tree->Branch("_y_vtx", &_y_vtx, "y_vtx/D");
 		_result_tree->Branch("_z_vtx", &_z_vtx, "z_vtx/D");
+		_result_tree->Branch("_closest_perpendicular_dist2wall_shr", &_closest_perpendicular_dist2wall_shr, "closest_perpendicular_dist2wall_shr/D");
+		_result_tree->Branch("_closest_perpendicular_dist2wall_vtx", &_closest_perpendicular_dist2wall_vtx, "closest_perpendicular_dist2wall_vtx/D");
 		_result_tree->Branch("_e_theta", &_e_theta, "_e_theta/D");
 		_result_tree->Branch("_e_phi", &_e_phi, "_e_phi/D");
 		_result_tree->Branch("_e_Edep", &_e_Edep, "_e_Edep/D");
@@ -297,7 +299,7 @@ namespace ertool {
 		_result_tree->Branch("_dedx", &_dedx, "dedx/D");
 		_result_tree->Branch("_flash_time", &_flash_time, "flash_time/D");
 		_result_tree->Branch("_summed_flash_PE", &_summed_flash_PE, "summed_flash_PE/D");
-		_result_tree->Branch("_dist_2wall", &_dist_2wall, "dist_2wall/D");
+		_result_tree->Branch("_dist_2wall_shr", &_dist_2wall_shr, "dist_2wall_shr/D");
 		_result_tree->Branch("_dist_2wall_vtx", &_dist_2wall_vtx, "dist_2wall_vtx/D");
 		_result_tree->Branch("_maybe_pi0_MID", &_maybe_pi0_MID, "_maybe_pi0_MID/O");
 		_result_tree->Branch("_n_ertool_showers", &_n_ertool_showers, "_n_ertool_showers/I");
@@ -333,7 +335,7 @@ namespace ertool {
 		_flash_time = -999999999.;
 		_summed_flash_PE = -999999999.;
 		_dist_2wall_vtx = -999.;
-		_dist_2wall = -999.;
+		_dist_2wall_shr = -999.;
 		_maybe_pi0_MID = false;
 		_n_ertool_showers = -1;
 		_n_nues_in_evt = 0;
@@ -403,31 +405,69 @@ namespace ertool {
 
 	void ERAnaLowEnergyExcess::FillBITEVariables(const Shower &singleE_shower, const Particle &p) {
 
-		///###### B.I.T.E Analysis Start #####
-		// Build backward halflines
-		::geoalgo::Vector inverse_shr_dir(-singleE_shower.Dir()[0],
-		                                  -singleE_shower.Dir()[1],
-		                                  -singleE_shower.Dir()[2]);
-		::geoalgo::Vector inverse_vtx_dir(-p.Momentum().Dir()[0],
-		                                  -p.Momentum().Dir()[1],
-		                                  -p.Momentum().Dir()[2]);
-		::geoalgo::HalfLine ext9(singleE_shower.Start(), inverse_shr_dir);
-		::geoalgo::HalfLine ext9_vtx(p.Vertex(), inverse_vtx_dir);
+	  ///###### B.I.T.E Analysis Start #####
+	  // Build backward halflines
+	  ::geoalgo::Vector inverse_shr_dir(-singleE_shower.Dir()[0],
+					    -singleE_shower.Dir()[1],
+					    -singleE_shower.Dir()[2]);
+	  ::geoalgo::Vector inverse_vtx_dir(-p.Momentum().Dir()[0],
+					    -p.Momentum().Dir()[1],
+					    -p.Momentum().Dir()[2]);
+	  ::geoalgo::HalfLine ext9_shr(singleE_shower.Start(), inverse_shr_dir);
+	  ::geoalgo::HalfLine ext9_vtx(p.Vertex(), inverse_vtx_dir);
+	  
+	  
+	  auto crs_tpc_ext9_shr  = _geoalg.Intersection(ext9_shr, _vactive);
+	  auto crs_tpc_ext9_vtx  = _geoalg.Intersection(ext9_vtx, _vactive);
+	  
+	  double dist9_shr = 999.;
+	  double dist9_vtx = 999.;
+	  if (crs_tpc_ext9_shr.size())     dist9_shr  = crs_tpc_ext9_shr[0].Dist(singleE_shower.Start());
+	  if (crs_tpc_ext9_vtx.size())     dist9_vtx  = crs_tpc_ext9_vtx[0].Dist(p.Vertex());
+	  
+	  _dist_2wall_shr = dist9_shr;
+	  _dist_2wall_vtx = dist9_vtx;
 
-		auto crs_tpc_ext9     = _geoalg.Intersection(ext9, _vactive);
-		auto crs_tpc_ext9_vtx = _geoalg.Intersection(ext9_vtx, _vactive);
+	  //Calculate cloest perpendiculat distance to TPC wall
+	  double PD2W_tmp_x;
+	  double PD2W_tmp_y;
+	  double PD2W_tmp_z;
 
-		double dist9  = 999.;
-		double dist9_vtx = 999.;
-		if (crs_tpc_ext9.size())     dist9     = crs_tpc_ext9[0].Dist(singleE_shower.Start());
-		if (crs_tpc_ext9_vtx.size()) dist9_vtx = crs_tpc_ext9_vtx[0].Dist(p.Vertex());
+	  //Shower
+	  if (2 * larutil::Geometry::GetME()->DetHalfWidth()-singleE_shower.Start()[0]>singleE_shower.Start()[0]-0.0) PD2W_tmp_x = singleE_shower.Start()[0]-0.0;
+	  else PD2W_tmp_x = 2 * larutil::Geometry::GetME()->DetHalfWidth() - singleE_shower.Start()[0];
 
-		_dist_2wall = dist9;
-		_dist_2wall_vtx = dist9_vtx;
-		///###### B.I.T.E Analysis END #####
+	  if (singleE_shower.Start()[1]+larutil::Geometry::GetME()->DetHalfHeight()>-singleE_shower.Start()[1]+larutil::Geometry::GetME()->DetHalfHeight()) {
+	    PD2W_tmp_y = -singleE_shower.Start()[1]+larutil::Geometry::GetME()->DetHalfHeight();
+	  }
+	  else PD2W_tmp_y =singleE_shower.Start()[1]+larutil::Geometry::GetME()->DetHalfHeight();
 
+	  if (larutil::Geometry::GetME()->DetLength() - singleE_shower.Start()[2]>singleE_shower.Start()[2]-0.0) PD2W_tmp_z = singleE_shower.Start()[2] - 0.0;
+	  else PD2W_tmp_z = larutil::Geometry::GetME()->DetLength() - singleE_shower.Start()[2];
+	  
+	  if (PD2W_tmp_x<=PD2W_tmp_y && PD2W_tmp_x<=PD2W_tmp_z)  _closest_perpendicular_dist2wall_shr  = PD2W_tmp_x;
+	  if (PD2W_tmp_y<=PD2W_tmp_x && PD2W_tmp_x<=PD2W_tmp_z)  _closest_perpendicular_dist2wall_shr  = PD2W_tmp_y;
+	  if (PD2W_tmp_z<=PD2W_tmp_x && PD2W_tmp_x<=PD2W_tmp_y)  _closest_perpendicular_dist2wall_shr  = PD2W_tmp_z;
+
+	  //Vertex
+	  if (2 * larutil::Geometry::GetME()->DetHalfWidth() - p.Vertex()[0]>p.Vertex()[0]-0.0) PD2W_tmp_x = p.Vertex()[0]-0.0;
+	  else PD2W_tmp_x = 2 * larutil::Geometry::GetME()->DetHalfWidth()-p.Vertex()[0];
+
+	  if (p.Vertex()[1]+larutil::Geometry::GetME()->DetHalfHeight()>-p.Vertex()[1]+larutil::Geometry::GetME()->DetHalfHeight()) {
+	    PD2W_tmp_y = -p.Vertex()[1]+larutil::Geometry::GetME()->DetHalfHeight();
+	  }
+	  else PD2W_tmp_y =p.Vertex()[1]+larutil::Geometry::GetME()->DetHalfHeight();
+
+	  if (larutil::Geometry::GetME()->DetLength() - p.Vertex()[2]>p.Vertex()[2]-0.0) PD2W_tmp_z = p.Vertex()[2] - 0.0;
+	  else PD2W_tmp_z = larutil::Geometry::GetME()->DetLength() - p.Vertex()[2];
+
+	  if (PD2W_tmp_x<=PD2W_tmp_y && PD2W_tmp_x<=PD2W_tmp_z)  _closest_perpendicular_dist2wall_vtx  = PD2W_tmp_x;
+	  if (PD2W_tmp_y<=PD2W_tmp_x && PD2W_tmp_x<=PD2W_tmp_z)  _closest_perpendicular_dist2wall_vtx  = PD2W_tmp_y;
+	  if (PD2W_tmp_z<=PD2W_tmp_x && PD2W_tmp_x<=PD2W_tmp_y)  _closest_perpendicular_dist2wall_vtx  = PD2W_tmp_z;
+	  ///###### B.I.T.E Analysis END #####
+	  
 	}// End FillBITEVariables
-
+  
 
 	void ERAnaLowEnergyExcess::FillRecoNuEnergies(const Particle &nue, const ParticleGraph &graph, const EventData &data) {
 

@@ -100,7 +100,7 @@ namespace ertool {
         double _x_vtx;            /// Neutrino vertex points (x,y,z separated)
         double _y_vtx;
         double _z_vtx;
-        double _e_theta;          /// Electron's angle w.r.t/ z- axis
+	double _e_theta;          /// Electron's angle w.r.t/ z- axis
         double _e_phi;            /// Electron's phi angle
         double _e_Edep;           /// Electron's truth energy
         double _e_CCQE;           /// Electron's CCQE energy
@@ -132,9 +132,11 @@ namespace ertool {
         bool _LEESample_mode = false;
 
         // Variables for B.I.T.E analysis
-        double _dist_2wall ;      /// Electron backwards distance 2 wall
+        double _dist_2wall_shr ;  /// Electron shower backwards distance 2 wall
         double _dist_2wall_vtx;   /// Vertex backwards distance 2 wall
-        ::geoalgo::AABox _vactive;
+	double _closest_perpendicular_dist2wall_shr; ///e Shower's cloest perpendicular distance to TPC wall
+	double _closest_perpendicular_dist2wall_vtx; ///Vertex's   cloest perpendicular distance to TPC wall  
+	::geoalgo::AABox _vactive;
 
     protected:
 
