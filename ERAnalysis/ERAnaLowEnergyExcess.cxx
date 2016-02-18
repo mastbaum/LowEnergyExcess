@@ -334,13 +334,16 @@ namespace ertool {
 		_dedx = -999.;
 		_flash_time = -999999999.;
 		_summed_flash_PE = -999999999.;
-		_dist_2wall_vtx = -999.;
-		_dist_2wall_shr = -999.;
 		_maybe_pi0_MID = false;
 		_n_ertool_showers = -1;
 		_n_nues_in_evt = 0;
 		_has_muon_child = false;
+		_dist_2wall_vtx = -999.;
+		_dist_2wall_shr = -999.;
+		_closest_perpendicular_dist2wall_shr = -999. ;
+		_closest_perpendicular_dist2wall_vtx = -999.;
 
+		  
 		return;
 
 	}
