@@ -47,7 +47,7 @@ lee_ana.SetLEESampleMode(True)
 
 anaunit = GetERSelectionInstance()
 anaunit._mgr.ClearCfgFile()
-if use_reco:
+if not use_reco:
     anaunit._mgr.AddCfgFile(os.environ['LARLITE_USERDEVDIR']+'/SelectionTool/ERTool/dat/ertool_default.cfg')
 else:
     anaunit._mgr.AddCfgFile(os.environ['LARLITE_USERDEVDIR']+'/SelectionTool/ERTool/dat/ertool_default_emulated.cfg')
@@ -58,10 +58,11 @@ if use_reco:
 
 
 anaunit._mgr.AddAna(lee_ana)
+
 my_proc.add_process(anaunit)
 
 my_proc.run()
-# my_proc.run(0,500)
+#my_proc.run(13,1)
 
 # done!
 print
