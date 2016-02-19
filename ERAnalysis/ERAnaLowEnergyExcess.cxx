@@ -18,7 +18,7 @@ namespace ertool {
 		if (_LEESample_mode) {
 			_rw.set_debug(false);
 			_rw.set_source_filename("$LARLITE_USERDEVDIR/LowEnergyExcess/LEEReweight/source/LEE_Reweight_plots.root");
-			_rw.set_n_generated_events(6637);
+			_rw.set_n_generated_events(4900); //6637
 			/// The input neutrinos were generated only in the TPC, not the entire cryostat
 			_rw.set_events_generated_only_in_TPC(true);
 			_rw.initialize();

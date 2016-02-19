@@ -2,7 +2,7 @@ import sys, os
 
 if len(sys.argv) < 2:
     msg  = '\n'
-    msg += "Usage 1: %s $INPUT_ROOT_FILEs $OUTPUT_PATH\n" % sys.argv[0]
+    msg += "Usage 1: %s \'mc\'/\'reco\' $INPUT_ROOT_FILEs $OUTPUT_PATH\n" % sys.argv[0]
     msg += '\n'
     sys.stderr.write(msg)
     sys.exit(1)
@@ -39,30 +39,36 @@ print "%s output file = %s"%(sys.argv[0],outfile)
 my_proc.set_ana_output_file(outfile)
 my_proc.set_output_file(outfilebase+'_larlite_out.root')
 
-lee_ana = ertool.ERAnaLowEnergyExcess()
-lee_ana.SetTreeName("LEETree")
-#lee_ana.SetDebug(False)
-lee_ana.SetLEESampleMode(True)
+#nueCC beam
+#eventfilter = fmwk.MC_CCnue_Filter()
+
+LEEana = ertool.ERAnaLowEnergyExcess()
+LEEana.SetTreeName("LEETree")
+LEEana.SetLEESampleMode(True)
+#LEEana.SetDebug(False)
 
 
 anaunit = GetERSelectionInstance()
 anaunit._mgr.ClearCfgFile()
 if not use_reco:
-    anaunit._mgr.AddCfgFile(os.environ['LARLITE_USERDEVDIR']+'/SelectionTool/ERTool/dat/ertool_default.cfg')
+	anaunit._mgr.AddCfgFile(os.environ['LARLITE_USERDEVDIR']+'/SelectionTool/ERTool/dat/ertool_default.cfg')
 else:
-    anaunit._mgr.AddCfgFile(os.environ['LARLITE_USERDEVDIR']+'/SelectionTool/ERTool/dat/ertool_default_emulated.cfg')
-    
+	anaunit._mgr.AddCfgFile(os.environ['LARLITE_USERDEVDIR']+'/SelectionTool/ERTool/dat/ertool_default_emulated.cfg')
+
+
 if use_reco:
-    anaunit.SetShowerProducer(False,'recoemu')
-    anaunit.SetTrackProducer(False,'recoemu')
+	anaunit.SetShowerProducer(False,'recoemu')
+	anaunit.SetTrackProducer(False,'recoemu')
 
+anaunit._mgr.AddAna(LEEana)
+# Add MC filter and analysis unit
+# to the process to be run
 
-anaunit._mgr.AddAna(lee_ana)
-
+# my_proc.add_process(eventfilter)
 my_proc.add_process(anaunit)
 
-my_proc.run()
-#my_proc.run(13,1)
+#my_proc.run()
+my_proc.run(0,4900) #something breaks between 4900 and 5000 ..
 
 # done!
 print
