@@ -51,14 +51,14 @@ def GetERSelectionInstance():
 	#Do not change this value unless you know what you are doing.
 	#Ecut = 50 # in MeV
 	Ecut = 10 #temporary trying this to see if it helps pi0 mids at low energy
-
-	anaunit = fmwk.ExampleERSelection()
-	anaunit.setDisableXShift(False)
-
-	#By default for now using mcreco
+	
+	anaunit = fmwk.ERSelSaveSingleEEvents()
 	anaunit.SetShowerProducer(True,'mcreco')
 	anaunit.SetTrackProducer(True,'mcreco')
+
 	anaunit.SetFlashProducer('opflash')
+
+	anaunit.setDisableXShift(False)
 
 	anaunit._mgr.AddAlgo(pi0_algo)
 	anaunit._mgr.AddAlgo(cos_algo)

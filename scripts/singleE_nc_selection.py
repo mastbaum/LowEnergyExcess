@@ -30,12 +30,14 @@ for x in xrange(len(sys.argv)-3):
     my_proc.add_input_file(sys.argv[x+2])
 
 # Specify IO mode
-my_proc.set_io_mode(fmwk.storage_manager.kREAD)
+my_proc.set_io_mode(fmwk.storage_manager.kBOTH)
 
 # Specify output root file name
-outfile = sys.argv[-1]+'/'+sys.argv[0][:-3]+'_%s'%('mc' if not use_reco else 'reco')+'.root'
+outfilebase = sys.argv[-1]+'/'+sys.argv[0][:-3]+'_%s'%('mc' if not use_reco else 'reco')
+outfile = outfilebase+'.root'
 print "%s output file = %s"%(sys.argv[0],outfile)
 my_proc.set_ana_output_file(outfile)
+my_proc.set_output_file(outfilebase+'_larlite_out.root')
 
 #nueCC beam
 eventfilter = fmwk.MC_NC_Filter()
@@ -46,13 +48,15 @@ LEEana.SetTreeName("beamNC")
 
 anaunit = GetERSelectionInstance()
 anaunit._mgr.ClearCfgFile()
-anaunit._mgr.AddCfgFile(os.environ['LARLITE_USERDEVDIR']+'/SelectionTool/ERTool/dat/ertool_default%s.cfg'%('_reco' if use_reco else ''))
-
+if not use_reco:
+	anaunit._mgr.AddCfgFile(os.environ['LARLITE_USERDEVDIR']+'/SelectionTool/ERTool/dat/ertool_default.cfg')
+else:
+	anaunit._mgr.AddCfgFile(os.environ['LARLITE_USERDEVDIR']+'/SelectionTool/ERTool/dat/ertool_default_emulated.cfg')
+	
 if use_reco:
-	anaunit.SetShowerProducer(False,'showerrecofuzzy')
-	anaunit.SetTrackProducer(False,'stitchkalmanhitcc')
+	anaunit.SetShowerProducer(False,'recoemu')
+	anaunit.SetTrackProducer(False,'recoemu')
 
-#anaunit.SetFlashProducer('opflash')
 
 anaunit._mgr.AddAna(LEEana)
 # Add MC filter and analysis unit
@@ -61,8 +65,10 @@ anaunit._mgr.AddAna(LEEana)
 my_proc.add_process(eventfilter)
 my_proc.add_process(anaunit)
 
+#my_proc.run()
+#448 guaranteed, 484 somtimes
+# my_proc.run(484,1)
 my_proc.run()
-# my_proc.run(0,500)
 
 # done!
 print

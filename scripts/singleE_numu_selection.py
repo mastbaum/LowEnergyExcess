@@ -46,11 +46,14 @@ LEEana.SetTreeName("beamNuMu")
 
 anaunit = GetERSelectionInstance()
 anaunit._mgr.ClearCfgFile()
-anaunit._mgr.AddCfgFile(os.environ['LARLITE_USERDEVDIR']+'/SelectionTool/ERTool/dat/ertool_default%s.cfg'%('_reco' if use_reco else ''))
-
+if not use_reco:
+	anaunit._mgr.AddCfgFile(os.environ['LARLITE_USERDEVDIR']+'/SelectionTool/ERTool/dat/ertool_default.cfg')
+else:
+	anaunit._mgr.AddCfgFile(os.environ['LARLITE_USERDEVDIR']+'/SelectionTool/ERTool/dat/ertool_default_emulated.cfg')
+	
 if use_reco:
-	anaunit.SetShowerProducer(False,'showerrecofuzzy')
-	anaunit.SetTrackProducer(False,'stitchkalmanhitcc')
+	anaunit.SetShowerProducer(False,'recoemu')
+	anaunit.SetTrackProducer(False,'recoemu')
 
 anaunit._mgr.AddAna(LEEana)
 # Add MC filter and analysis unit
@@ -60,7 +63,12 @@ my_proc.add_process(eventfilter)
 my_proc.add_process(anaunit)
 
 my_proc.run()
-# my_proc.run(0,500)
+#my_proc.run(637,1) #both mc and reco find a MID
+#my_proc.run(729,1) #both mc and reco find a MID
+#my_proc.run(815,1) #both mc and reco find a MID
+#my_proc.run(851,1) #both mc and reco find a MID
+# my_proc.run(2648,1) #only one finds a MID
+
 
 # done!
 print

@@ -10,6 +10,7 @@
 #pragma link off all functions;
 
 #pragma link C++ class ertool::ERAnaLowEnergyExcess+;
+#pragma link C++ class ertool::ERSelSaveSingleEEvents+;
 #pragma link C++ class ertool::ERAnaNCPi0Debug+;
 //ADD_NEW_CLASS ... do not change this line
 #endif

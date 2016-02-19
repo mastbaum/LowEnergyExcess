@@ -30,12 +30,14 @@ for x in xrange(len(sys.argv)-3):
     my_proc.add_input_file(sys.argv[x+2])
 
 # Specify IO mode
-my_proc.set_io_mode(fmwk.storage_manager.kREAD)
+my_proc.set_io_mode(fmwk.storage_manager.kBOTH)
 
 # Specify output root file name
-outfile = sys.argv[-1]+'/'+sys.argv[0][:-3]+'_%s'%('mc' if not use_reco else 'reco')+'.root'
-
+outfilebase = sys.argv[-1]+'/'+sys.argv[0][:-3]+'_%s'%('mc' if not use_reco else 'reco')
+outfile = outfilebase+'.root'
+print "%s output file = %s"%(sys.argv[0],outfile)
 my_proc.set_ana_output_file(outfile)
+my_proc.set_output_file(outfilebase+'_larlite_out.root')
 
 lee_ana = ertool.ERAnaLowEnergyExcess()
 lee_ana.SetTreeName("LEETree")
@@ -45,11 +47,14 @@ lee_ana.SetLEESampleMode(True)
 
 anaunit = GetERSelectionInstance()
 anaunit._mgr.ClearCfgFile()
-anaunit._mgr.AddCfgFile(os.environ['LARLITE_USERDEVDIR']+'/SelectionTool/ERTool/dat/ertool_default%s.cfg'%('_reco' if use_reco else ''))
-
 if use_reco:
-    anaunit.SetShowerProducer(False,'showerrecofuzzy')
-    anaunit.SetTrackProducer(False,'stitchkalmanhitcc')
+    anaunit._mgr.AddCfgFile(os.environ['LARLITE_USERDEVDIR']+'/SelectionTool/ERTool/dat/ertool_default.cfg')
+else:
+    anaunit._mgr.AddCfgFile(os.environ['LARLITE_USERDEVDIR']+'/SelectionTool/ERTool/dat/ertool_default_emulated.cfg')
+    
+if use_reco:
+    anaunit.SetShowerProducer(False,'recoemu')
+    anaunit.SetTrackProducer(False,'recoemu')
 
 
 anaunit._mgr.AddAna(lee_ana)

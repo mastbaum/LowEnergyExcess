@@ -7,6 +7,9 @@ namespace larlite {
 
 bool MC_cosmic_Filter::initialize() {
 
+  _n_total_events = 0;
+  _n_kept_events = 0;
+
   return true;
 }
 
@@ -17,6 +20,8 @@ bool MC_cosmic_Filter::analyze(storage_manager* storage) {
     print(larlite::msg::kERROR, __FUNCTION__, Form("Did not find specified data product, mctruth!"));
     return false;
   }
+
+  _n_total_events++;
 
   bool ret = false;
 
@@ -34,13 +39,15 @@ bool MC_cosmic_Filter::analyze(storage_manager* storage) {
     if (ret == true) continue;
 
   }
-
+  
+  if (ret) _n_kept_events++;
   return ret;
 
 }
 
 bool MC_cosmic_Filter::finalize() {
 
+  std::cout << _n_total_events << " total events analyzed, " << _n_kept_events << " events passed MC_cosmic_Filter." << std::endl;
 
   return true;
 }
