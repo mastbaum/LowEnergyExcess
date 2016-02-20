@@ -3,7 +3,7 @@ import os, datetime, sys
 _use_reco = False
 
 input_base = '/Users/davidkaleko/Data/larlite/joseph_LEE_files/'
-output_dir = '/Users/davidkaleko/larlite/UserDev/LowEnergyExcess/output/70KV/crorphanfix/mcinfo_only/'#mc_startdir/'
+output_dir = '/Users/davidkaleko/larlite/UserDev/LowEnergyExcess/output/70KV/noxshift/mcinfo_only/'
 if _use_reco:
 	output_dir = '/Users/davidkaleko/larlite/UserDev/LowEnergyExcess/output/70KV/recoemmaster/with_reco_noenergysmear_retrained/'
 
@@ -39,5 +39,5 @@ if dirt_files: os.system('python singleE_dirt_selection.py %s %s %s'%('reco' if 
 if bnb_files: os.system('python singleE_nc_selection.py %s %s %s'%('reco' if _use_reco else 'mc',bnb_files,output_dir))
 if bnb_files: os.system('python singleE_nue_selection.py %s %s %s'%('reco' if _use_reco else 'mc',bnb_files,output_dir))
 if bnb_files: os.system('python singleE_numu_selection.py %s %s %s'%('reco' if _use_reco else 'mc',bnb_files,output_dir))
-# if lee_files: os.system('python singleE_LEE_selection.py %s %s %s'%('reco' if _use_reco else 'mc',lee_files,output_dir))
+if lee_files: os.system('python singleE_LEE_selection.py %s %s %s'%('reco' if _use_reco else 'mc',lee_files,output_dir))
 print "run_all_selections total time duration is",datetime.datetime.now()-starttime
