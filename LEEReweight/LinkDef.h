@@ -11,7 +11,9 @@
 
 #pragma link C++ class lee::LEERW+;
 #pragma link C++ class larlite::test_LEERW+;
+#pragma link C++ class larlite::GenLEERWSourcePlot+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 

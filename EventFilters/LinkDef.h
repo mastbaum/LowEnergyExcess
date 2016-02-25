@@ -16,5 +16,6 @@
 #pragma link C++ class larlite::MC_CCnue_Filter+;
 #pragma link C++ class larlite::MC_NC_Filter+;
 #pragma link C++ class larlite::MC_CCnumu_Filter+;
+#pragma link C++ class larlite::MC_LEE_Filter+;
 //ADD_NEW_CLASS ... do not change this line
 #endif

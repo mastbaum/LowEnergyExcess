@@ -40,7 +40,7 @@ my_proc.set_ana_output_file(outfile)
 my_proc.set_output_file(outfilebase+'_larlite_out.root')
 
 #nueCC beam
-#eventfilter = fmwk.MC_CCnue_Filter()
+eventfilter = fmwk.MC_LEE_Filter()
 
 LEEana = ertool.ERAnaLowEnergyExcess()
 LEEana.SetTreeName("LEETree")
@@ -64,11 +64,11 @@ anaunit._mgr.AddAna(LEEana)
 # Add MC filter and analysis unit
 # to the process to be run
 
-# my_proc.add_process(eventfilter)
+my_proc.add_process(eventfilter)
 my_proc.add_process(anaunit)
 
-#my_proc.run()
-my_proc.run(0,4900) #something breaks between 4900 and 5000 ..
+my_proc.run()
+# my_proc.run(0,4900) #something breaks between 4900 and 5000 ..
 
 # done!
 print
