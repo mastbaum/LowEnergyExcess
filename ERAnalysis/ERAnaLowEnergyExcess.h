@@ -85,6 +85,10 @@ namespace ertool {
         /// Function to compute various neutrino energy definitions and fill them
         void FillRecoNuEnergies(const Particle &nue, const ParticleGraph &ps, const EventData &data);
 
+        /// Function to sum energy for all tracks/showers coming within 5cm of neutrino vertex
+        /// excluding the "singleE" energy
+        void FillVertexEnergy(const Particle &nue, const ParticleGraph &ps, const EventData &data);
+
         // Result tree comparison for reconstructed events
         TTree* _result_tree;
         std::string _treename;
@@ -100,7 +104,7 @@ namespace ertool {
         double _x_vtx;            /// Neutrino vertex points (x,y,z separated)
         double _y_vtx;
         double _z_vtx;
-	double _e_theta;          /// Electron's angle w.r.t/ z- axis
+        double _e_theta;          /// Electron's angle w.r.t/ z- axis
         double _e_phi;            /// Electron's phi angle
         double _e_Edep;           /// Electron's truth energy
         double _e_CCQE;           /// Electron's CCQE energy
@@ -117,7 +121,7 @@ namespace ertool {
         int _n_nues_in_evt;       /// # of nues reconstructed in the entire event (pi0 evts sometimes have two  )
         bool _has_muon_child;     /// If there is a muon associated with the reconstructed nue
         double _e_nuReco_better;    /// trying a better definition of energy
-
+        double _vertex_energy; /// Summed energy of all things passing within 5cm of vertex, excluding the electron
 
         // prepare TTree with variables
         void PrepareTreeVariables();
@@ -134,9 +138,14 @@ namespace ertool {
         // Variables for B.I.T.E analysis
         double _dist_2wall_shr ;  /// Electron shower backwards distance 2 wall
         double _dist_2wall_vtx;   /// Vertex backwards distance 2 wall
-	double _closest_perpendicular_dist2wall_shr; ///e Shower's cloest perpendicular distance to TPC wall
-	double _closest_perpendicular_dist2wall_vtx; ///Vertex's   cloest perpendicular distance to TPC wall  
-	::geoalgo::AABox _vactive;
+        double _dist_2wall_longz_shr;
+        double _perp_dist2wall_shr; ///e Shower's cloest perpendicular distance to TPC wall
+        double _perp_dist2wall_vtx; ///Vertex's   cloest perpendicular distance to TPC wall
+        ::geoalgo::AABox _vactive;
+        ::geoalgo::AABox _vactive_longz;
+        ::geoalgo::Sphere _vtx_sphere;
+
+
 
     protected:
 

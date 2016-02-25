@@ -32,6 +32,16 @@ namespace ertool {
 		                             larutil::Geometry::GetME()->DetHalfHeight(),
 		                             larutil::Geometry::GetME()->DetLength());
 
+		// Build box for TPC active volume, extended a very far amount in the z- direction
+		_vactive_longz = ::geoalgo::AABox(0,
+		                                  -larutil::Geometry::GetME()->DetHalfHeight(),
+		                                  -99999,
+		                                  2 * larutil::Geometry::GetME()->DetHalfWidth(),
+		                                  larutil::Geometry::GetME()->DetHalfHeight(),
+		                                  99999);
+
+		/// 5cm sphere
+		_vtx_sphere.Radius(5.);
 	}
 
 
@@ -96,7 +106,7 @@ namespace ertool {
 				/// There are various ways to compute the neutrino energy.
 				/// This function fills all the different reconstructed nue energy variables in the ttree
 				FillRecoNuEnergies(p, graph, data);
-
+			
 				// get all reconstructed descendants of the neutrino and fill some relevant variables
 				// "descendants" mean immediate children, their children, their children... all the way down
 				auto const descendants = graph.GetAllDescendantNodes(p.ID());
@@ -118,6 +128,7 @@ namespace ertool {
 
 						// Make a copy of the shower that is the ccsingleE
 						singleE_shower = data.Shower(daught.RecoID());
+						// std::cout<<"Found singleE! reco ID is "<<daught.RecoID()<<std::endl;
 
 						// Some info about the shower to store in the analysis ttree
 						_e_theta = singleE_shower.Dir().Theta();
@@ -139,6 +150,10 @@ namespace ertool {
 						}
 					}// if the particle has a reco object
 				} // End loop over neutrino children
+
+				/// Compute energy w/in 5cm of neutrino start point, excluding lepton
+				FillVertexEnergy(p,graph,data);
+
 			}// if we found the neutrino
 		}// End loop over particles
 
@@ -178,9 +193,14 @@ namespace ertool {
 				// We match ertool showers from mc particle graph to ertool showers from reco particle graphs
 				// By comparing the energy to double precision... can consider also comparing _dedx and _time as well
 				if (mc_ertoolshower._energy == singleE_shower._energy) {
+					// std::cout<<"Found matching energy. mc reco ID is "
+					// <<mc.RecoID()<<std::endl;
+
 					if (mc_ertoolshower._energy < 0 || mc_ertoolshower._energy > 5000)
 						std::cout << "wtf? shower energy in mcgraph is stupid. it's " << mc_ertoolshower._energy << std::endl;
 					auto parent = mc_graph.GetParticle(mc.Parent());
+					// std::cout<<"mc ancestor PDG is "<<mc_graph.GetParticle(mc.Ancestor()).PdgCode()
+					// <<" while parent PDG is "<<parent.PdgCode()<<std::endl;
 					_parentPDG = parent.PdgCode();
 					_mcPDG = mc.PdgCode();
 				}
@@ -285,8 +305,8 @@ namespace ertool {
 		_result_tree->Branch("_x_vtx", &_x_vtx, "x_vtx/D");
 		_result_tree->Branch("_y_vtx", &_y_vtx, "y_vtx/D");
 		_result_tree->Branch("_z_vtx", &_z_vtx, "z_vtx/D");
-		_result_tree->Branch("_closest_perpendicular_dist2wall_shr", &_closest_perpendicular_dist2wall_shr, "closest_perpendicular_dist2wall_shr/D");
-		_result_tree->Branch("_closest_perpendicular_dist2wall_vtx", &_closest_perpendicular_dist2wall_vtx, "closest_perpendicular_dist2wall_vtx/D");
+		_result_tree->Branch("_perp_dist2wall_shr", &_perp_dist2wall_shr, "closest_perpendicular_dist2wall_shr/D");
+		_result_tree->Branch("_perp_dist2wall_vtx", &_perp_dist2wall_vtx, "closest_perpendicular_dist2wall_vtx/D");
 		_result_tree->Branch("_e_theta", &_e_theta, "_e_theta/D");
 		_result_tree->Branch("_e_phi", &_e_phi, "_e_phi/D");
 		_result_tree->Branch("_e_Edep", &_e_Edep, "_e_Edep/D");
@@ -301,11 +321,12 @@ namespace ertool {
 		_result_tree->Branch("_summed_flash_PE", &_summed_flash_PE, "summed_flash_PE/D");
 		_result_tree->Branch("_dist_2wall_shr", &_dist_2wall_shr, "dist_2wall_shr/D");
 		_result_tree->Branch("_dist_2wall_vtx", &_dist_2wall_vtx, "dist_2wall_vtx/D");
+		_result_tree->Branch("_dist_2wall_longz_shr", &_dist_2wall_longz_shr, "dist_2wall_longz_shr/D");
 		_result_tree->Branch("_maybe_pi0_MID", &_maybe_pi0_MID, "_maybe_pi0_MID/O");
 		_result_tree->Branch("_n_ertool_showers", &_n_ertool_showers, "_n_ertool_showers/I");
 		_result_tree->Branch("_n_nues_in_evt", &_n_nues_in_evt, "n_nues_in_evt/I");
 		_result_tree->Branch("_has_muon_child", &_has_muon_child, "_has_muon_child/O");
-
+		_result_tree->Branch("_vertex_energy", &_vertex_energy, "_vertex_energy/D");
 		return;
 	}
 
@@ -340,10 +361,11 @@ namespace ertool {
 		_has_muon_child = false;
 		_dist_2wall_vtx = -999.;
 		_dist_2wall_shr = -999.;
-		_closest_perpendicular_dist2wall_shr = -999. ;
-		_closest_perpendicular_dist2wall_vtx = -999.;
+		_dist_2wall_longz_shr = -999.;
+		_perp_dist2wall_shr = -999. ;
+		_perp_dist2wall_vtx = -999.;
+		_vertex_energy = -999.;
 
-		  
 		return;
 
 	}
@@ -408,69 +430,77 @@ namespace ertool {
 
 	void ERAnaLowEnergyExcess::FillBITEVariables(const Shower &singleE_shower, const Particle &p) {
 
-	  ///###### B.I.T.E Analysis Start #####
-	  // Build backward halflines
-	  ::geoalgo::Vector inverse_shr_dir(-singleE_shower.Dir()[0],
-					    -singleE_shower.Dir()[1],
-					    -singleE_shower.Dir()[2]);
-	  ::geoalgo::Vector inverse_vtx_dir(-p.Momentum().Dir()[0],
-					    -p.Momentum().Dir()[1],
-					    -p.Momentum().Dir()[2]);
-	  ::geoalgo::HalfLine ext9_shr(singleE_shower.Start(), inverse_shr_dir);
-	  ::geoalgo::HalfLine ext9_vtx(p.Vertex(), inverse_vtx_dir);
-	  
-	  
-	  auto crs_tpc_ext9_shr  = _geoalg.Intersection(ext9_shr, _vactive);
-	  auto crs_tpc_ext9_vtx  = _geoalg.Intersection(ext9_vtx, _vactive);
-	  
-	  double dist9_shr = 999.;
-	  double dist9_vtx = 999.;
-	  if (crs_tpc_ext9_shr.size())     dist9_shr  = crs_tpc_ext9_shr[0].Dist(singleE_shower.Start());
-	  if (crs_tpc_ext9_vtx.size())     dist9_vtx  = crs_tpc_ext9_vtx[0].Dist(p.Vertex());
-	  
-	  _dist_2wall_shr = dist9_shr;
-	  _dist_2wall_vtx = dist9_vtx;
+		///###### B.I.T.E Analysis Start #####
+		// Build backward halflines
+		::geoalgo::Vector inverse_shr_dir(-singleE_shower.Dir()[0],
+		                                  -singleE_shower.Dir()[1],
+		                                  -singleE_shower.Dir()[2]);
+		::geoalgo::Vector inverse_vtx_dir(-p.Momentum().Dir()[0],
+		                                  -p.Momentum().Dir()[1],
+		                                  -p.Momentum().Dir()[2]);
+		::geoalgo::HalfLine ext9_shr(singleE_shower.Start(), inverse_shr_dir);
+		::geoalgo::HalfLine ext9_vtx(p.Vertex(), inverse_vtx_dir);
 
-	  //Calculate cloest perpendiculat distance to TPC wall
-	  double PD2W_tmp_x;
-	  double PD2W_tmp_y;
-	  double PD2W_tmp_z;
 
-	  //Shower
-	  if (2 * larutil::Geometry::GetME()->DetHalfWidth()-singleE_shower.Start()[0]>singleE_shower.Start()[0]-0.0) PD2W_tmp_x = singleE_shower.Start()[0]-0.0;
-	  else PD2W_tmp_x = 2 * larutil::Geometry::GetME()->DetHalfWidth() - singleE_shower.Start()[0];
+		auto crs_tpc_ext9_shr  = _geoalg.Intersection(ext9_shr, _vactive);
+		auto crs_tpc_ext9_vtx  = _geoalg.Intersection(ext9_vtx, _vactive);
+		auto crs_tpc_ext9_shr_longz  = _geoalg.Intersection(ext9_shr, _vactive_longz);
 
-	  if (singleE_shower.Start()[1]+larutil::Geometry::GetME()->DetHalfHeight()>-singleE_shower.Start()[1]+larutil::Geometry::GetME()->DetHalfHeight()) {
-	    PD2W_tmp_y = -singleE_shower.Start()[1]+larutil::Geometry::GetME()->DetHalfHeight();
-	  }
-	  else PD2W_tmp_y =singleE_shower.Start()[1]+larutil::Geometry::GetME()->DetHalfHeight();
+		double dist9_shr = 999.;
+		double dist9_vtx = 999.;
+		if (crs_tpc_ext9_shr.size())     dist9_shr  = crs_tpc_ext9_shr[0].Dist(singleE_shower.Start());
+		if (crs_tpc_ext9_vtx.size())     dist9_vtx  = crs_tpc_ext9_vtx[0].Dist(p.Vertex());
 
-	  if (larutil::Geometry::GetME()->DetLength() - singleE_shower.Start()[2]>singleE_shower.Start()[2]-0.0) PD2W_tmp_z = singleE_shower.Start()[2] - 0.0;
-	  else PD2W_tmp_z = larutil::Geometry::GetME()->DetLength() - singleE_shower.Start()[2];
-	  
-	  if (PD2W_tmp_x<=PD2W_tmp_y && PD2W_tmp_x<=PD2W_tmp_z)  _closest_perpendicular_dist2wall_shr  = PD2W_tmp_x;
-	  if (PD2W_tmp_y<=PD2W_tmp_x && PD2W_tmp_x<=PD2W_tmp_z)  _closest_perpendicular_dist2wall_shr  = PD2W_tmp_y;
-	  if (PD2W_tmp_z<=PD2W_tmp_x && PD2W_tmp_x<=PD2W_tmp_y)  _closest_perpendicular_dist2wall_shr  = PD2W_tmp_z;
+		_dist_2wall_shr = dist9_shr;
+		_dist_2wall_vtx = dist9_vtx;
 
-	  //Vertex
-	  if (2 * larutil::Geometry::GetME()->DetHalfWidth() - p.Vertex()[0]>p.Vertex()[0]-0.0) PD2W_tmp_x = p.Vertex()[0]-0.0;
-	  else PD2W_tmp_x = 2 * larutil::Geometry::GetME()->DetHalfWidth()-p.Vertex()[0];
+		if (crs_tpc_ext9_shr_longz.size())
+			_dist_2wall_longz_shr = crs_tpc_ext9_shr_longz[0].Dist(singleE_shower.Start());
 
-	  if (p.Vertex()[1]+larutil::Geometry::GetME()->DetHalfHeight()>-p.Vertex()[1]+larutil::Geometry::GetME()->DetHalfHeight()) {
-	    PD2W_tmp_y = -p.Vertex()[1]+larutil::Geometry::GetME()->DetHalfHeight();
-	  }
-	  else PD2W_tmp_y =p.Vertex()[1]+larutil::Geometry::GetME()->DetHalfHeight();
+		//Calculate cloest perpendiculat distance to TPC wall
 
-	  if (larutil::Geometry::GetME()->DetLength() - p.Vertex()[2]>p.Vertex()[2]-0.0) PD2W_tmp_z = p.Vertex()[2] - 0.0;
-	  else PD2W_tmp_z = larutil::Geometry::GetME()->DetLength() - p.Vertex()[2];
+		//Shower
+		_perp_dist2wall_shr = sqrt(_geoalg.SqDist(_vactive, singleE_shower.Start()));
+		//If outside of the TPC, make this distance negative
+		_perp_dist2wall_shr *= _vactive.Contain(singleE_shower.Start()) ? 1. : -1.;
+		//Vertex
+		_perp_dist2wall_vtx = sqrt(_geoalg.SqDist(_vactive, p.Vertex()));
+		_perp_dist2wall_vtx *= _vactive.Contain(p.Vertex()) ? 1. : -1.;
 
-	  if (PD2W_tmp_x<=PD2W_tmp_y && PD2W_tmp_x<=PD2W_tmp_z)  _closest_perpendicular_dist2wall_vtx  = PD2W_tmp_x;
-	  if (PD2W_tmp_y<=PD2W_tmp_x && PD2W_tmp_x<=PD2W_tmp_z)  _closest_perpendicular_dist2wall_vtx  = PD2W_tmp_y;
-	  if (PD2W_tmp_z<=PD2W_tmp_x && PD2W_tmp_x<=PD2W_tmp_y)  _closest_perpendicular_dist2wall_vtx  = PD2W_tmp_z;
-	  ///###### B.I.T.E Analysis END #####
-	  
+		///###### B.I.T.E Analysis END #####
+
 	}// End FillBITEVariables
-  
+
+	void ERAnaLowEnergyExcess::FillVertexEnergy(const Particle &nue, const ParticleGraph &ps, const EventData &data) {
+		
+		// Center the sphere on the neutrino vertex
+		_vtx_sphere.Center(nue.Vertex());
+
+		_vertex_energy = 0.;
+
+		// Loop over all tracks and showers in the event (excluding the nue's electron)
+		// if any part of a track passes thru sphere, add that track's energy to vertex energy
+		// if start point of a shower is in sphere, add that track's energy to vertex energy
+		for(auto const& track : data.Track()){
+			// Only consider tracks that are longer than 0.3cm!
+			if(track.Length() < 0.3) continue;
+			
+			for(auto const& pt : track){
+				if (_vtx_sphere.Contain(pt)){
+					_vertex_energy += track._energy;
+					break;
+				}
+			}
+		}
+		for(auto const& shower : data.Shower()){
+			/// Don't include the "SingleE" energy in vertex energy calculation
+			if (shower.RecoID() == singleE_shower.RecoID())
+				continue;
+			if(_vtx_sphere.Contain(shower.Start()))
+				_vertex_energy += shower._energy;
+		}
+		
+	}
 
 	void ERAnaLowEnergyExcess::FillRecoNuEnergies(const Particle &nue, const ParticleGraph &graph, const EventData &data) {
 

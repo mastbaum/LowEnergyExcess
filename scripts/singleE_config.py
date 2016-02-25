@@ -57,9 +57,9 @@ def GetERSelectionInstance():
 	anaunit.SetShowerProducer(True,'mcreco')
 	anaunit.SetTrackProducer(True,'mcreco')
 
-	# anaunit.SetFlashProducer('opflash')
+	anaunit.SetFlashProducer('opflashSat')
 
-	anaunit.setDisableXShift(True)
+	anaunit.setDisableXShift(False)
 
 	anaunit._mgr.AddAlgo(pi0_algo)
 	anaunit._mgr.AddAlgo(cos_algo)
@@ -78,12 +78,12 @@ def GetERSelectionInstance():
 	# However, right now all solo shower particles are tagged as cosmic by the flash-matcher
 	# Because it only works for tracks! For now, flashmatch_algo has to live after
 	# and it has to be an analysis cut. This will be changed ASAP.
-	# anaunit._mgr.AddAlgo(flashmatch_algo)
+	anaunit._mgr.AddAlgo(flashmatch_algo)
 
 	# Testing adding this... it looks for flashes shared b/t the neutrino and others
 	# and potentially adds the "others" as children of the neutrino, or tags
 	# the neutrino as a pi0 MID
-	# anaunit._mgr.AddAlgo(ertool.ERAlgoNueSharedFlashMerger())
+	anaunit._mgr.AddAlgo(ertool.ERAlgoNueSharedFlashMerger())
 	anaunit._mgr._profile_mode = True
 
 	anaunit.SetMinEDep(Ecut)
