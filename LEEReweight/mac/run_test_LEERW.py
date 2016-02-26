@@ -26,9 +26,10 @@ my_proc.set_io_mode(fmwk.storage_manager.kREAD)
 
 # Specify output root file name
 my_proc.set_ana_output_file("test_LEERW_anaout.root")
-
+my_proc.enable_filter(True)
+my_proc.add_process(fmwk.MC_LEE_Filter())
 test_module = fmwk.test_LEERW()
-test_module.set_debug(True)
+test_module.set_debug(False)
 my_proc.add_process(test_module)
 
 # Let's run it.

@@ -41,7 +41,7 @@ namespace larlite {
         auto const& mcs = ev_mcshower->at(0);
 
         double uz = mcs.Start().Momentum().Vect().Unit().Z();
-        double evis = mcs.DetProfile().E();
+        double evis = mcs.Start().E();
         _out_hist->Fill(evis, uz);
 
         return true;

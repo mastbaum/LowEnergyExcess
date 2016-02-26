@@ -67,6 +67,10 @@ namespace ertool {
 
         //Set this to true if you're running over LEE sample (so it uses LEE reweighting package)
         void SetLEESampleMode(bool flag) { _LEESample_mode = flag; }
+        // File with LEERW relevant histograms stored in it
+        void SetLEEFilename(const std::string& name)     { _LEE_filename = name; }
+        void SetLEENEvents(size_t n_evts_passing_filter) { _LEE_evts_passing_filter = n_evts_passing_filter; }
+        void SetLEECorrHistName(const std::string& name) { _LEE_corrhist_name = name; }
 
     private:
 
@@ -145,7 +149,9 @@ namespace ertool {
         ::geoalgo::AABox _vactive_longz;
         ::geoalgo::Sphere _vtx_sphere;
 
-
+        std::string _LEE_filename = "";
+        size_t _LEE_evts_passing_filter = 0;
+        std::string _LEE_corrhist_name = "";
 
     protected:
 

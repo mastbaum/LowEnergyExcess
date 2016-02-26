@@ -81,7 +81,8 @@ namespace lee {
 		void set_source_filename(std::string filename) { _source_filename = filename; }
 
 		void set_n_generated_events(size_t david) { _n_generated_evts = david; }
-
+		void set_generated_evis_uz_corr_name(std::string name) { _generated_evis_uz_corr_name = name; }
+		
 		/// If the generated neutrino sample was only generated in the TPC active volume,
 		/// or if it was generated throughout the entire cryostat volume.
 		void set_events_generated_only_in_TPC(bool kaleko) { _events_generated_only_in_TPC = kaleko; }
@@ -122,7 +123,7 @@ namespace lee {
 		std::string _flux_ratio_name = "flux_ratio";
 		std::string _xsec_ratio_name = "xsec_ratio";
 		std::string _MB_evis_uz_corr_name = "hist_raw_uz_evis_smooth";
-		std::string _generated_evis_uz_corr_name = "initial_evis_uz_corr";
+		std::string _generated_evis_uz_corr_name = "";//"initial_evis_uz_corr";
 
 		double _pot_weight = 1.021671826625387; //6.6 / 6.46; //microboone POT over miniboone POT
 		double _tonnage_weight = 0.20943637580123128;//UB_TONNAGE_GRAMS / MINIBOONE_TONNAGE_GRAMS; //roughly 0.2

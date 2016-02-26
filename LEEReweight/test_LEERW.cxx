@@ -10,9 +10,15 @@ bool test_LEERW::initialize() {
 
     _rw.set_debug(_debug);
 
-    _rw.set_source_filename("$LARLITE_USERDEVDIR/LowEnergyExcess/LEEReweight/source/LEE_Reweight_plots.root");
+    _rw.set_source_filename("$LARLITE_USERDEVDIR/LowEnergyExcess/LEEReweight/source/whatttt/LEE_Reweight_plots.root");
+    // _rw.set_source_filename("$LARLITE_USERDEVDIR/LowEnergyExcess/LEEReweight/source/whatttt/LEE_Reweight_plots_mcc7temp.root");
+    // _rw.set_source_filename("$LARLITE_USERDEVDIR/LowEnergyExcess/LEEReweight/source/fuckfuck.root");
 
-    _rw.set_n_generated_events(6637);
+    // _rw.set_n_generated_events(6637);
+    _rw.set_n_generated_events(369);
+
+    _rw.set_generated_evis_uz_corr_name("initial_evis_uz_corr");
+    // _rw.set_generated_evis_uz_corr_name("temp_mcc7_lowstat");
 
     _rw.initialize();
 
@@ -52,13 +58,14 @@ bool test_LEERW::analyze(storage_manager* storage) {
     // std::cout << "(normalized) scaling weight is computed to be: " << normalized_weight << std::endl;
 
     sculpted_evis_uz_corr->Fill(hacky_evt_info.electron_energy_MEV, hacky_evt_info.electron_uz, sculpting_weight);
-    reweighted_nu_spectrum->Fill(true_nu_energy, normalized_weight);// * sculpting_weight);
-    reweighted_electron_spectrum->Fill(hacky_evt_info.electron_energy_MEV / 1000., normalized_weight);// * sculpting_weight);
+    reweighted_nu_spectrum->Fill(true_nu_energy, normalized_weight * sculpting_weight);
+    reweighted_electron_spectrum->Fill(hacky_evt_info.electron_energy_MEV / 1000., normalized_weight * sculpting_weight);
     return true;
 }
 
 bool test_LEERW::finalize() {
-    std::cout<<"fibnalize: summed sculpt weight is "<<summed_sculpting_weight<<std::endl;
+    std::cout<<"test_LEERW::finalize: summed sculpt weight is "<<summed_sculpting_weight<<std::endl;
+    std::cout<<"test_LEERW::reweighted_nu_spectrum integral is "<<reweighted_nu_spectrum->Integral()<<std::endl;
     if (_fout) {
         _fout->cd();
         initial_nu_spectrum->Write();

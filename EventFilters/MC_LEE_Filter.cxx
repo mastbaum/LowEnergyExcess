@@ -43,9 +43,14 @@ namespace larlite {
       //Don't care about any particles with less than 20 MeV KE
       if ( KE < 0.02 ) continue;
 
-      //Count up the number of electrons
-      if ( abs(particle.PdgCode()) == 11 )
+      //Count up the number of electrons, skip all events with > 1.5 GeV electron
+      //Also skip events with < 100 MeV electron since they will get zero weight
+      // (out of energy range we care about... LEERW weights only computed from 0.1 to 2 GEV)
+      if ( abs(particle.PdgCode()) == 11 ){
         n_electrons++;
+        if ( KE > 1.5 || KE < 0.1 )
+          return false;
+      }
 
       //Skip this event if any other particles exist... this filter
       //is to pick out 1eNpNn events!

@@ -17,8 +17,13 @@ namespace ertool {
 		/// Initialize the LEE reweighting package, if in LEE sample mode...
 		if (_LEESample_mode) {
 			_rw.set_debug(false);
-			_rw.set_source_filename("$LARLITE_USERDEVDIR/LowEnergyExcess/LEEReweight/source/LEE_Reweight_plots.root");
-			_rw.set_n_generated_events(4900); //6637
+			if(_LEE_filename.empty() || _LEE_corrhist_name.empty() || !_LEE_evts_passing_filter){
+				std::cout<<"ERROR!! Did not properly configure LEE reweighting thingy, and you're trying to use it!"<<std::endl;
+				return;
+			}
+			_rw.set_source_filename(_LEE_filename.c_str());
+			_rw.set_generated_evis_uz_corr_name(_LEE_corrhist_name.c_str());
+			_rw.set_n_generated_events(_LEE_evts_passing_filter);
 			/// The input neutrinos were generated only in the TPC, not the entire cryostat
 			_rw.set_events_generated_only_in_TPC(true);
 			_rw.initialize();
