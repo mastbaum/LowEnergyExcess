@@ -5,7 +5,7 @@
  *
  * \brief Class def header for a class ERAnaLowEnergyExcess
  *
- * @author jzennamo
+ * @author kaleko
  */
 
 /** \addtogroup LowEPlots
@@ -126,7 +126,9 @@ namespace ertool {
         bool _has_muon_child;     /// If there is a muon associated with the reconstructed nue
         double _e_nuReco_better;    /// trying a better definition of energy
         double _vertex_energy; /// Summed energy of all things passing within 5cm of vertex, excluding the electron
-
+        int _mc_origin;           /// mctruth/mctrack/mcshower Origin (==2 if from a cosmic)
+        double _mc_time;          /// ertool::Shower._time for the single electron
+        
         // prepare TTree with variables
         void PrepareTreeVariables();
         /// Function to re-set TTree variables

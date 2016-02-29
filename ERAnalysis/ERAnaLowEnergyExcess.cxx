@@ -17,8 +17,8 @@ namespace ertool {
 		/// Initialize the LEE reweighting package, if in LEE sample mode...
 		if (_LEESample_mode) {
 			_rw.set_debug(false);
-			if(_LEE_filename.empty() || _LEE_corrhist_name.empty() || !_LEE_evts_passing_filter){
-				std::cout<<"ERROR!! Did not properly configure LEE reweighting thingy, and you're trying to use it!"<<std::endl;
+			if (_LEE_filename.empty() || _LEE_corrhist_name.empty() || !_LEE_evts_passing_filter) {
+				std::cout << "ERROR!! Did not properly configure LEE reweighting thingy, and you're trying to use it!" << std::endl;
 				return;
 			}
 			_rw.set_source_filename(_LEE_filename.c_str());
@@ -76,6 +76,15 @@ namespace ertool {
 			return false;
 		}
 
+		// Get MC particle set
+		auto const& mc_graph = MCParticleGraph();
+		// Get the MC data
+		auto const& mc_data = MCEventData();
+
+		if (!mc_graph.GetParticleArray().size())
+			std::cout << "WARNING: Size of mc particle graph is zero! Perhaps you forgot to include mctruth/mctrack/mcshower?" << std::endl;
+
+
 		// Store the # of ertool showers in the event
 		_n_ertool_showers = graph.GetParticleNodes(RecoType_t::kShower).size();
 
@@ -111,7 +120,7 @@ namespace ertool {
 				/// There are various ways to compute the neutrino energy.
 				/// This function fills all the different reconstructed nue energy variables in the ttree
 				FillRecoNuEnergies(p, graph, data);
-			
+
 				// get all reconstructed descendants of the neutrino and fill some relevant variables
 				// "descendants" mean immediate children, their children, their children... all the way down
 				auto const descendants = graph.GetAllDescendantNodes(p.ID());
@@ -133,12 +142,13 @@ namespace ertool {
 
 						// Make a copy of the shower that is the ccsingleE
 						singleE_shower = data.Shower(daught.RecoID());
-						// std::cout<<"Found singleE! reco ID is "<<daught.RecoID()<<std::endl;
+						// std::cout << "Found singleE! reco ID is " << daught.RecoID() << std::endl;
 
 						// Some info about the shower to store in the analysis ttree
 						_e_theta = singleE_shower.Dir().Theta();
 						_e_phi = singleE_shower.Dir().Phi();
 						_e_Edep = singleE_shower._energy;
+						_mc_time = singleE_shower._time;
 						_is_simple = isInteractionSimple(daught, graph);
 						_dedx = data.Shower(daught.RecoID())._dedx;
 
@@ -157,65 +167,83 @@ namespace ertool {
 				} // End loop over neutrino children
 
 				/// Compute energy w/in 5cm of neutrino start point, excluding lepton
-				FillVertexEnergy(p,graph,data);
+				FillVertexEnergy(p, graph, data);
+
+
+				//// Now we loop over the MC particle graph and extract some MC information
+				//// Note, the MC particle graph is made from mctracks and mcshowers.
+				//// If your reco particle graph is also made from mctracks and showers,
+				//// you can find a one-to-one match between the reco particle graph nodes
+				//// and the MC particlegraph nodes in order to do reco-to-MC comparisons
+
+				// Compute a reweight:
+				// in the case of BNB files, this is flux reweighting
+				// in case of LEE sample, this is the LEERW package to make scaled excess
+				// (note this also fills the _ptype variable)
+				_weight = GetWeight(mc_graph);
+
+				// std::cout << "Neutrino reconstructed! Let's loop through particle graph" << std::endl;
+				for ( auto const & mc : mc_graph.GetParticleArray() ) {
+
+					// if (abs(mc.PdgCode()) == 12 || abs(mc.PdgCode()) == 14) {
+					// 	// std::cout << "Found neutrino in mc particle graph! pdg = " << mc.PdgCode() << std::endl;
+					// 	// std::cout << "Now I loop through all descendants of the neutrino and cout stuff:" << std::endl;
+					// 	for (auto const& kidnode : mc_graph.GetAllDescendantNodes(mc.ID())) {
+					// 		auto const& kid = mc_graph.GetParticle(kidnode);
+					// 		// std::cout << "neutrino descendant with PDG " << kid.PdgCode()
+					// 		//           << " and reco ID " << kid.RecoID()
+					// 		//           << " and mcgraph node ID " << kid.ID() << std::endl;
+					// 	}
+					// 	// std::cout << "That's all the neutrino descendants!" << std::endl;
+					// }
+
+					// Find the shower particle in the mcparticlegraph that matches the object CCSingleE identified
+					// as the single electron (note, the mcparticlegraph object could be a gamma, for example)
+					// To do this, grab the ertool Shower in mc_data associated with each mcparticlegraph
+					// shower particle and compare
+					// (note this works for perfect-reco, but a more sophisticated method is needed for reco-reco)
+					if (mc.RecoType() == kShower) {
+
+						ertool::Shower mc_ertoolshower = mc_data.Shower(mc.RecoID());
+						// We match ertool showers from mc particle graph to ertool showers from reco particle graphs
+						// By comparing the energy to double precision... can consider also comparing _dedx and _time as well
+						if (mc_ertoolshower._energy == singleE_shower._energy) {
+							// std::cout << "Found the singleE shower in the MCParticleGraph. Reco ID is "
+							//           << mc.RecoID()
+							//           << " and mcgraph node ID " << mc.ID() << std::endl;
+							// std::cout << " singleE shower has energy = " << mc_ertoolshower._energy << std::endl;
+							// std::cout << "Found the singleE shower in the MCParticleGraph. Origin is "
+							// <<mc.Origin()<<" and shower time is "<<singleE_shower._time<<std::endl;
+							_mc_origin = mc.Origin();
+
+							if (mc_ertoolshower._energy < 0 || mc_ertoolshower._energy > 5000)
+								std::cout << "wtf? shower energy in mcgraph is stupid. it's " << mc_ertoolshower._energy << std::endl;
+							auto parent = mc_graph.GetParticle(mc.Parent());
+							auto ancestor = mc_graph.GetParticle(mc.Ancestor());
+							// std::cout << "mc ancestor PDG is " << ancestor.PdgCode()
+							//           << " while parent PDG is " << parent.PdgCode()
+							//           << " and truth PDG is " << mc.PdgCode() << std::endl;
+
+							// if (ancestor.PdgCode() == 2147483647) {
+							// 	std::cout << "--------------Woah ancestor has weird PDG code... I'm gonna print out some more info:" << std::endl;
+							// 	std::cout << "RUN SUBRUN EVTID = " << data.Run() << " " << data.SubRun() << " " << data.Event_ID() << std::endl;
+							// 	std::cout << "Electron start point is " << mc_ertoolshower.Start() << std::endl;
+							// 	std::cout << "Here's the mcgraph diagram:" << std::endl;
+							// 	std::cout << mc_graph.Diagram() << std::endl;
+							// }
+
+							_parentPDG = parent.PdgCode();
+							_mcPDG = mc.PdgCode();
+						}
+					} // end loop if the reco type was mcshower
+
+				} // end loop over mc particle graph
+
+				/// Actually fill the analysis tree once per reconstructed neutrino
+				_result_tree->Fill();
 
 			}// if we found the neutrino
 		}// End loop over particles
-
-
-
-		//// Now we loop over the MC particle graph and extract some MC information
-		//// Note, the MC particle graph is made from mctracks and mcshowers.
-		//// If your reco particle graph is also made from mctracks and showers,
-		//// you can find a one-to-one match between the reco particle graph nodes
-		//// and the MC particlegraph nodes in order to do reco-to-MC comparisons
-
-		// Get MC particle set
-		auto const& mc_graph = MCParticleGraph();
-		// Get the MC data
-		auto const& mc_data = MCEventData();
-
-		if (!mc_graph.GetParticleArray().size())
-			std::cout << "WARNING: Size of mc particle graph is zero! Perhaps you forgot to include mctruth/mctrack/mcshower?" << std::endl;
-
-		// Compute a reweight:
-		// in the case of BNB files, this is flux reweighting
-		// in case of LEE sample, this is the LEERW package to make scaled excess
-		// (note this also fills the _ptype variable)
-		_weight = GetWeight(mc_graph);
-
-
-		for ( auto const & mc : mc_graph.GetParticleArray() ) {
-
-			// Find the shower particle in the mcparticlegraph that matches the object CCSingleE identified
-			// as the single electron (note, the mcparticlegraph object could be a gamma, for example)
-			// To do this, grab the ertool Shower in mc_data associated with each mcparticlegraph
-			// shower particle and compare
-			// (note this works for perfect-reco, but a more sophisticated method is needed for reco-reco)
-			if (mc.RecoType() == kShower) {
-
-				ertool::Shower mc_ertoolshower = mc_data.Shower(mc.RecoID());
-				// We match ertool showers from mc particle graph to ertool showers from reco particle graphs
-				// By comparing the energy to double precision... can consider also comparing _dedx and _time as well
-				if (mc_ertoolshower._energy == singleE_shower._energy) {
-					// std::cout<<"Found matching energy. mc reco ID is "
-					// <<mc.RecoID()<<std::endl;
-
-					if (mc_ertoolshower._energy < 0 || mc_ertoolshower._energy > 5000)
-						std::cout << "wtf? shower energy in mcgraph is stupid. it's " << mc_ertoolshower._energy << std::endl;
-					auto parent = mc_graph.GetParticle(mc.Parent());
-					// std::cout<<"mc ancestor PDG is "<<mc_graph.GetParticle(mc.Ancestor()).PdgCode()
-					// <<" while parent PDG is "<<parent.PdgCode()<<std::endl;
-					_parentPDG = parent.PdgCode();
-					_mcPDG = mc.PdgCode();
-				}
-			} // end loop if the reco type was mcshower
-
-		} // end loop over mc particle graph
-
-
-		/// Actually fill the analysis tree
-		_result_tree->Fill();
 
 		return true;
 	}
@@ -332,6 +360,8 @@ namespace ertool {
 		_result_tree->Branch("_n_nues_in_evt", &_n_nues_in_evt, "n_nues_in_evt/I");
 		_result_tree->Branch("_has_muon_child", &_has_muon_child, "_has_muon_child/O");
 		_result_tree->Branch("_vertex_energy", &_vertex_energy, "_vertex_energy/D");
+		_result_tree->Branch("_mc_origin", &_mc_origin, "_mc_origin/I");
+		_result_tree->Branch("_mc_time", &_mc_time, "_mc_time/D");
 		return;
 	}
 
@@ -370,6 +400,8 @@ namespace ertool {
 		_perp_dist2wall_shr = -999. ;
 		_perp_dist2wall_vtx = -999.;
 		_vertex_energy = -999.;
+		_mc_origin = -1;
+		_mc_time = -9e9;
 
 		return;
 
@@ -477,7 +509,7 @@ namespace ertool {
 	}// End FillBITEVariables
 
 	void ERAnaLowEnergyExcess::FillVertexEnergy(const Particle &nue, const ParticleGraph &ps, const EventData &data) {
-		
+
 		// Center the sphere on the neutrino vertex
 		_vtx_sphere.Center(nue.Vertex());
 
@@ -486,25 +518,25 @@ namespace ertool {
 		// Loop over all tracks and showers in the event (excluding the nue's electron)
 		// if any part of a track passes thru sphere, add that track's energy to vertex energy
 		// if start point of a shower is in sphere, add that track's energy to vertex energy
-		for(auto const& track : data.Track()){
+		for (auto const& track : data.Track()) {
 			// Only consider tracks that are longer than 0.3cm!
-			if(track.Length() < 0.3) continue;
-			
-			for(auto const& pt : track){
-				if (_vtx_sphere.Contain(pt)){
+			if (track.Length() < 0.3) continue;
+
+			for (auto const& pt : track) {
+				if (_vtx_sphere.Contain(pt)) {
 					_vertex_energy += track._energy;
 					break;
 				}
 			}
 		}
-		for(auto const& shower : data.Shower()){
+		for (auto const& shower : data.Shower()) {
 			/// Don't include the "SingleE" energy in vertex energy calculation
 			if (shower.RecoID() == singleE_shower.RecoID())
 				continue;
-			if(_vtx_sphere.Contain(shower.Start()))
+			if (_vtx_sphere.Contain(shower.Start()))
 				_vertex_energy += shower._energy;
 		}
-		
+
 	}
 
 	void ERAnaLowEnergyExcess::FillRecoNuEnergies(const Particle &nue, const ParticleGraph &graph, const EventData &data) {
