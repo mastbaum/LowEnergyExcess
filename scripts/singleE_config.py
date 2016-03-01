@@ -53,7 +53,8 @@ def GetERSelectionInstance():
 	#Ecut = 50 # in MeV
 	Ecut = 10 #temporary trying this to see if it helps pi0 mids at low energy
 	
-	anaunit = fmwk.ERSelSaveSingleEEvents()
+	#anaunit = fmwk.ERSelSaveSingleEEvents()
+	anaunit = fmwk.ExampleERSelection()
 	anaunit.SetShowerProducer(True,'mcreco')
 	anaunit.SetTrackProducer(True,'mcreco')
 
