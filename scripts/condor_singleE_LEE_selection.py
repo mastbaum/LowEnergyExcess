@@ -2,7 +2,7 @@ import sys, os
 
 if len(sys.argv) < 2:
     msg  = '\n'
-    msg += "Usage 1: input_config_file.txt\n" % sys.argv[0]
+    msg += "Usage 1: %s \'mc\'/\'reco\' $INPUT_ROOT_FILEs $OUTPUT_PATH\n" % sys.argv[0]
     msg += '\n'
     sys.stderr.write(msg)
     sys.exit(1)
@@ -14,7 +14,6 @@ from singleE_config import GetERSelectionInstance
 
 # Create ana_processor instance
 my_proc = fmwk.ana_processor()
-#my_proc.enable_event_alignment(False)
 my_proc.enable_filter(True)
 
 emulator_cfg = ''
@@ -42,11 +41,18 @@ my_proc.set_ana_output_file(outfile)
 my_proc.set_output_file(outfile[:-5]+'_larlite_out.root')
 
 #nueCC beam
-eventfilter = fmwk.MC_CCnumu_Filter()
+eventfilter = fmwk.MC_LEE_Filter()
 
 LEEana = ertool.ERAnaLowEnergyExcess()
-LEEana.SetTreeName("beamNuMu")
-#LEEana.SetDebug(False)
+LEEana.SetTreeName("LEETree")
+LEEana.SetLEESampleMode(True)
+LEEana.SetLEENEvents(369)#427 # for current filter, with 1000 bnb intrinsic total events
+LEEana.SetLEEFilename(os.environ['LARLITE_USERDEVDIR']+'/LowEnergyExcess/LEEReweight/source/LEE_Reweight_plots.root')
+#Currently using the mcc6 input histogram even though it's not quite right,
+#because I can't get the mcc7 input histogram to work correctly with these low statistics
+LEEana.SetLEECorrHistName('initial_evis_uz_corr')
+#LEEana.SetLEECorrHistName('temp_mcc7_lowstat')
+
 
 anaunit = GetERSelectionInstance()
 anaunit._mgr.ClearCfgFile()
@@ -54,7 +60,8 @@ if not use_reco:
 	anaunit._mgr.AddCfgFile(os.environ['LARLITE_USERDEVDIR']+'/SelectionTool/ERTool/dat/ertool_default.cfg')
 else:
 	anaunit._mgr.AddCfgFile(os.environ['LARLITE_USERDEVDIR']+'/SelectionTool/ERTool/dat/ertool_default_emulated.cfg')
-	
+
+
 if use_reco:
 	anaunit.SetShowerProducer(False,'recoemu')
 	anaunit.SetTrackProducer(False,'recoemu')
@@ -64,7 +71,7 @@ anaunit._mgr.AddAna(LEEana)
 # to the process to be run
 
 my_proc.add_process(eventfilter)
-#Add reco emulator if necessary!
+
 if use_reco:
     emulator = fmwk.EmuDriver()
     emulator.set_config(emulator_cfg)
@@ -74,6 +81,7 @@ if use_reco:
 my_proc.add_process(anaunit)
 
 my_proc.run()
+# my_proc.run(0,4900) #something breaks between 4900 and 5000 ..
 
 # done!
 print

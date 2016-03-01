@@ -42,10 +42,10 @@ my_proc.set_ana_output_file(outfile)
 my_proc.set_output_file(outfile[:-5]+'_larlite_out.root')
 
 #nueCC beam
-eventfilter = fmwk.MC_CCnumu_Filter()
+eventfilter = fmwk.MC_dirt_Filter()
 
 LEEana = ertool.ERAnaLowEnergyExcess()
-LEEana.SetTreeName("beamNuMu")
+LEEana.SetTreeName("dirt")
 #LEEana.SetDebug(False)
 
 anaunit = GetERSelectionInstance()
@@ -74,6 +74,7 @@ if use_reco:
 my_proc.add_process(anaunit)
 
 my_proc.run()
+
 
 # done!
 print
