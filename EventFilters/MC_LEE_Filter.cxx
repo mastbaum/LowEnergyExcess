@@ -90,9 +90,7 @@ namespace larlite {
 
   bool MC_LEE_Filter::finalize() {
 
-    std::cout << "MC_LEE_Filter: Total events = " << total_events << std::endl;
-    std::cout << "MC_LEE_Filter: Final kept events = " << kept_events << std::endl;
-
+  std::cout << total_events << " total events analyzed, " << kept_events << " events passed MC_LEE_Filter." << std::endl;
     return true;
   }
 
