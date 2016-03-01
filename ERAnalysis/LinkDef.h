@@ -12,6 +12,8 @@
 #pragma link C++ class ertool::ERAnaLowEnergyExcess+;
 #pragma link C++ class larlite::ERSelSaveSingleEEvents+;
 #pragma link C++ class ertool::ERAnaNCPi0Debug+;
+#pragma link C++ class ertool::ERAlgoTagEmulatedDeletionsCosmic+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 

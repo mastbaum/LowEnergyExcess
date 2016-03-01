@@ -62,6 +62,8 @@ def GetERSelectionInstance():
 
 	anaunit.setDisableXShift(False)
 
+	anaunit._mgr.AddAlgo(ertool.ERAlgoTagEmulatedDeletionsCosmic())
+	
 	# pi0 algo takes a long time on cosmics files (may showers)...
 	# first run track dresser to gobble up most of the showers and 
 	# pi0 algo will run much faster (I hope!)
