@@ -1,73 +1,69 @@
 /**
- * \file MC_cosmic_Filter.h
+ * \file CosmicTriggerHacker.h
  *
- * \ingroup LowEPlots
+ * \ingroup EventFilters
+ * 
+ * \brief Class def header for a class CosmicTriggerHacker
  *
- * \brief Class def header for a class MC_cosmic_Filter
- *
- * @author jzennamo
+ * @author davidkaleko
  */
 
-/** \addtogroup LowEPlots
+/** \addtogroup EventFilters
 
     @{*/
 
-#ifndef LARLITE_MC_COSMIC_FILTER_H
-#define LARLITE_MC_COSMIC_FILTER_H
+#ifndef LARLITE_COSMICTRIGGERHACKER_H
+#define LARLITE_COSMICTRIGGERHACKER_H
 
 #include "Analysis/ana_base.h"
-#include "DataFormat/mctruth.h"
+ #include "DataFormat/mctrack.h"
 
 namespace larlite {
   /**
-     \class MC_cosmic_Filter
+     \class CosmicTriggerHacker
      User custom analysis class made by SHELL_USER_NAME
    */
-  class MC_cosmic_Filter : public ana_base {
-
+  class CosmicTriggerHacker : public ana_base{
+  
   public:
 
     /// Default constructor
-    MC_cosmic_Filter() { _name = "MC_cosmic_Filter"; _fout = 0;}
+    CosmicTriggerHacker(){ _name="CosmicTriggerHacker"; _fout=0; _trigger_hack_tree=0;}
 
     /// Default destructor
-    virtual ~MC_cosmic_Filter() {}
+    virtual ~CosmicTriggerHacker(){}
 
-    /** IMPLEMENT in MC_cosmic_Filter.cc!
+    /** IMPLEMENT in CosmicTriggerHacker.cc!
         Initialization method to be called before the analysis event loop.
-    */
+    */ 
     virtual bool initialize();
 
-    /** IMPLEMENT in MC_cosmic_Filter.cc!
-        Analyze a data event-by-event
+    /** IMPLEMENT in CosmicTriggerHacker.cc! 
+        Analyze a data event-by-event  
     */
     virtual bool analyze(storage_manager* storage);
 
-    /** IMPLEMENT in MC_cosmic_Filter.cc!
+    /** IMPLEMENT in CosmicTriggerHacker.cc! 
         Finalize method to be called after all events processed.
     */
     virtual bool finalize();
 
-    void flip(bool on) { _flip = on; }
-
   protected:
 
-    // boolean to flip logical operation of algorithm
-    bool _flip;
 
-    size_t _n_total_events;
-    size_t _n_kept_events;
-
+    TTree* _trigger_hack_tree;
+    double hacked_trig_time;
+    
   };
 }
 #endif
 
 //**************************************************************************
-//
+// 
 // For Analysis framework documentation, read Manual.pdf here:
 //
 // http://microboone-docdb.fnal.gov:8080/cgi-bin/ShowDocument?docid=3183
 //
 //**************************************************************************
 
-/** @} */ // end of doxygen group
+/** @} */ // end of doxygen group 

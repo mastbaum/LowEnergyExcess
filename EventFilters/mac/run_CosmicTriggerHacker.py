@@ -25,10 +25,10 @@ for x in xrange(len(sys.argv)):
 my_proc.set_io_mode(fmwk.storage_manager.kREAD)
 
 # Specify output root file name
-my_proc.set_ana_output_file("MC_cosmic_Filter_ana_out.root");
+my_proc.set_ana_output_file("CosmicTriggerHacker_out.root");
 
 # Attach a template process
-myfilter = fmwk.MC_cosmic_Filter()
+myfilter = fmwk.CosmicTriggerHacker()
 my_proc.add_process(myfilter);
 
 # Let's run it.
