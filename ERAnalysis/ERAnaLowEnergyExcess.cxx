@@ -206,7 +206,8 @@ namespace ertool {
 						ertool::Shower mc_ertoolshower = mc_data.Shower(mc.RecoID());
 						// We match ertool showers from mc particle graph to ertool showers from reco particle graphs
 						// By comparing the energy to double precision... can consider also comparing _dedx and _time as well
-						if (mc_ertoolshower._energy == singleE_shower._energy) {
+						// if (mc_ertoolshower._energy == singleE_shower._energy) {
+						if (mc.RecoID() == singleE_shower.RecoID()) {
 							// std::cout << "Found the singleE shower in the MCParticleGraph. Reco ID is "
 							//           << mc.RecoID()
 							//           << " and mcgraph node ID " << mc.ID() << std::endl;
@@ -215,8 +216,6 @@ namespace ertool {
 							// <<mc.Origin()<<" and shower time is "<<singleE_shower._time<<std::endl;
 							_mc_origin = mc.Origin();
 
-							if (mc_ertoolshower._energy < 0 || mc_ertoolshower._energy > 5000)
-								std::cout << "wtf? shower energy in mcgraph is stupid. it's " << mc_ertoolshower._energy << std::endl;
 							auto parent = mc_graph.GetParticle(mc.Parent());
 							auto ancestor = mc_graph.GetParticle(mc.Ancestor());
 							// std::cout << "mc ancestor PDG is " << ancestor.PdgCode()
