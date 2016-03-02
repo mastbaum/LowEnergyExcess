@@ -62,6 +62,7 @@ private:
   int n_with_parent_contained_track;
   int n_showers_with_start_not_contained;
   int n_showers_with_no_vtx_activity;
+  int n_showers_from_pizeros;
 
   int n_evts;
 

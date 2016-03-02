@@ -28,7 +28,7 @@ namespace larlite {
   public:
 
     /// Default constructor
-    MC_cosmic_Filter() { _name = "MC_cosmic_Filter"; _fout = 0;}
+    MC_cosmic_Filter() { _name = "MC_cosmic_Filter"; _fout = 0; _trigger_hack_tree = 0;}
 
     /// Default destructor
     virtual ~MC_cosmic_Filter() {}
@@ -57,6 +57,9 @@ namespace larlite {
 
     size_t _n_total_events;
     size_t _n_kept_events;
+
+    TTree* _trigger_hack_tree;
+    double hacked_trig_time;
   };
 }
 #endif

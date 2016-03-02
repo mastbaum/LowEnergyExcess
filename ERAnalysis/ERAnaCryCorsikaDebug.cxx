@@ -29,6 +29,7 @@ namespace ertool {
     n_with_parent_contained_track = 0;
     n_showers_with_start_not_contained = 0;
     n_showers_with_no_vtx_activity = 0;
+    n_showers_from_pizeros = 0;
     n_evts = 0;
 
     _vtx_sphere.Radius(5.);
@@ -56,6 +57,9 @@ namespace ertool {
 
         // std::cout << mc_ertoolshower._energy << std::endl;
         auto parent = mc_graph.GetParticle(mc.Parent());
+        if (parent.PdgCode() == 111)
+          n_showers_from_pizeros++;
+
         if (parent.RecoType() == kShower) {
           // std::cout << "parent is shower" << std::endl;
           // std::cout << mc_data.Shower(parent.RecoID())._energy << std::endl;
@@ -103,6 +107,8 @@ namespace ertool {
               << n_with_parent_track / float(n_evts) << std::endl;
     std::cout << "per event, n_showers_with_no_vtx_activity = "
               << n_showers_with_no_vtx_activity / float(n_evts) << std::endl;
+    std::cout << "per event, n_showers_from_pizeros = " 
+              << n_showers_from_pizeros / float(n_evts) << std::endl;
   }
 
   bool ERAnaCryCorsikaDebug::IsVertexActivity(const Particle &shower, const ParticleGraph &ps, const EventData &data) {
@@ -116,8 +122,8 @@ namespace ertool {
       // Only consider tracks that are longer than 0.3cm!
       if (track.Length() < 0.3) continue;
 
-      for (auto const& pt : track) 
-        if (_vtx_sphere.Contain(pt)) 
+      for (auto const& pt : track)
+        if (_vtx_sphere.Contain(pt))
           return true;
     }
 
