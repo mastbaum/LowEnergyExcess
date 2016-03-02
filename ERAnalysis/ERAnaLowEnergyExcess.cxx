@@ -148,7 +148,6 @@ namespace ertool {
 						_e_theta = singleE_shower.Dir().Theta();
 						_e_phi = singleE_shower.Dir().Phi();
 						_e_Edep = singleE_shower._energy;
-						_mc_time = singleE_shower._time;
 						_is_simple = isInteractionSimple(daught, graph);
 						_dedx = data.Shower(daught.RecoID())._dedx;
 
@@ -231,7 +230,7 @@ namespace ertool {
 							// 	std::cout << "Here's the mcgraph diagram:" << std::endl;
 							// 	std::cout << mc_graph.Diagram() << std::endl;
 							// }
-
+							_mc_time = mc_ertoolshower._time;
 							_parentPDG = parent.PdgCode();
 							_mcPDG = mc.PdgCode();
 						}
