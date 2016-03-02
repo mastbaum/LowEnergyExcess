@@ -181,9 +181,25 @@ namespace ertool {
 				// (note this also fills the _ptype variable)
 				_weight = GetWeight(mc_graph);
 
+
+
+				// Make a vector of arrival time of all mctracks that pass thru the TPC
+				std::vector<double> hacked_trig_times;
+				hacked_trig_times.clear();
+
 				// std::cout << "Neutrino reconstructed! Let's loop through particle graph" << std::endl;
 				for ( auto const & mc : mc_graph.GetParticleArray() ) {
 
+					if(mc.RecoType() == kTrack){
+						if(!mc_data.Track(mc.RecoID()).size())
+							continue;
+						hacked_trig_times.push_back(mc_data.Track(mc.RecoID())._time);
+					}
+					else if (mc.RecoType() == kShower){
+						if(mc_data.Shower(mc.RecoID())._energy <= 0)
+							continue;
+						hacked_trig_times.push_back(mc_data.Shower(mc.RecoID())._time);
+					}
 					// if (abs(mc.PdgCode()) == 12 || abs(mc.PdgCode()) == 14) {
 					// 	// std::cout << "Found neutrino in mc particle graph! pdg = " << mc.PdgCode() << std::endl;
 					// 	// std::cout << "Now I loop through all descendants of the neutrino and cout stuff:" << std::endl;
@@ -236,6 +252,10 @@ namespace ertool {
 					} // end loop if the reco type was mcshower
 
 				} // end loop over mc particle graph
+
+				// Fill the hacked trigger time
+				int randomIndex = rand() % hacked_trig_times.size();
+				_trigger_hack_time = hacked_trig_times[randomIndex];
 
 				/// Actually fill the analysis tree once per reconstructed neutrino
 				_result_tree->Fill();
@@ -360,6 +380,8 @@ namespace ertool {
 		_result_tree->Branch("_vertex_energy", &_vertex_energy, "_vertex_energy/D");
 		_result_tree->Branch("_mc_origin", &_mc_origin, "_mc_origin/I");
 		_result_tree->Branch("_mc_time", &_mc_time, "_mc_time/D");
+		_result_tree->Branch("_trigger_hack_time", &_trigger_hack_time, "_trigger_hack_time/D");
+
 		return;
 	}
 
@@ -400,6 +422,7 @@ namespace ertool {
 		_vertex_energy = -999.;
 		_mc_origin = -1;
 		_mc_time = -9e9;
+		_trigger_hack_time = std::numeric_limits<double>::max();
 
 		return;
 
