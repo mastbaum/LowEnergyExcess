@@ -184,28 +184,34 @@ namespace ertool {
 
 
 				// Make a vector of arrival time of all mctracks that pass thru the TPC
-				std::vector<double> hacked_trig_times;
-				hacked_trig_times.clear();
-				//for (auto const& flash : data.Flash()){
-				//	// std::cout<<"Flash: time = "<<flash._t<<", total PE "<<flash.TotalPE()<<std::endl;
-				//	if(flash.TotalPE() > 10.)
-				//		hacked_trig_times.push_back(flash._t);
-				//}
-
+				// std::vector<double> hacked_trig_times;
+				// hacked_trig_times.clear();
+				double flash_time_closest_to_bgw = std::numeric_limits<double>::max();
+				double BGW_center = 4.35;
+				for (auto const& flash : data.Flash()) {
+					if (flash.TotalPE() > 10.) {
+						if (fabs(flash._t - BGW_center) < fabs(flash_time_closest_to_bgw-BGW_center)) {
+							flash_time_closest_to_bgw = flash._t;
+						}
+					}
+					// hacked_trig_times.push_back(flash._t);
+				}
+				_trigger_hack_time = flash_time_closest_to_bgw;
+				
 				// std::cout << "Neutrino reconstructed! Let's loop through particle graph" << std::endl;
 				for ( auto const & mc : mc_graph.GetParticleArray() ) {
-				  
-				  if(mc.RecoType() == kTrack){
-				    if(!mc_data.Track(mc.RecoID()).size())
-				      continue;
-				    hacked_trig_times.push_back(mc_data.Track(mc.RecoID())._time);
-				  }
-				  else if (mc.RecoType() == kShower){
-				    if(mc_data.Shower(mc.RecoID())._energy <= 0)
-				      continue;
-				    hacked_trig_times.push_back(mc_data.Shower(mc.RecoID())._time);
-				  }
-				  
+
+					// if(mc.RecoType() == kTrack){
+					//   if(!mc_data.Track(mc.RecoID()).size())
+					//     continue;
+					//   hacked_trig_times.push_back(mc_data.Track(mc.RecoID())._time);
+					// }
+					// else if (mc.RecoType() == kShower){
+					//   if(mc_data.Shower(mc.RecoID())._energy <= 0)
+					//     continue;
+					//   hacked_trig_times.push_back(mc_data.Shower(mc.RecoID())._time);
+					// }
+
 
 					// if (abs(mc.PdgCode()) == 12 || abs(mc.PdgCode()) == 14) {
 					// 	// std::cout << "Found neutrino in mc particle graph! pdg = " << mc.PdgCode() << std::endl;
@@ -260,9 +266,9 @@ namespace ertool {
 
 				} // end loop over mc particle graph
 
-				// Fill the hacked trigger time
-				int randomIndex = rand() % hacked_trig_times.size();
-				_trigger_hack_time = hacked_trig_times[randomIndex];
+				// // Fill the hacked trigger time
+				// int randomIndex = rand() % hacked_trig_times.size();
+				// _trigger_hack_time = hacked_trig_times[randomIndex];
 
 				/// Actually fill the analysis tree once per reconstructed neutrino
 				_result_tree->Fill();
