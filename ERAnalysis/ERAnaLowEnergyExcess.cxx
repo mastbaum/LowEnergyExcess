@@ -213,17 +213,9 @@ namespace ertool {
 					// }
 
 
-					// if (abs(mc.PdgCode()) == 12 || abs(mc.PdgCode()) == 14) {
-					// 	// std::cout << "Found neutrino in mc particle graph! pdg = " << mc.PdgCode() << std::endl;
-					// 	// std::cout << "Now I loop through all descendants of the neutrino and cout stuff:" << std::endl;
-					// 	for (auto const& kidnode : mc_graph.GetAllDescendantNodes(mc.ID())) {
-					// 		auto const& kid = mc_graph.GetParticle(kidnode);
-					// 		// std::cout << "neutrino descendant with PDG " << kid.PdgCode()
-					// 		//           << " and reco ID " << kid.RecoID()
-					// 		//           << " and mcgraph node ID " << kid.ID() << std::endl;
-					// 	}
-					// 	// std::cout << "That's all the neutrino descendants!" << std::endl;
-					// }
+					if (abs(mc.PdgCode()) == 12) 
+						_mc_nu_energy = mc.Energy();
+
 
 					// Find the shower particle in the mcparticlegraph that matches the object CCSingleE identified
 					// as the single electron (note, the mcparticlegraph object could be a gamma, for example)
@@ -394,6 +386,7 @@ namespace ertool {
 		_result_tree->Branch("_mc_origin", &_mc_origin, "_mc_origin/I");
 		_result_tree->Branch("_mc_time", &_mc_time, "_mc_time/D");
 		_result_tree->Branch("_trigger_hack_time", &_trigger_hack_time, "_trigger_hack_time/D");
+		_result_tree->Branch("_mc_nu_energy", &_mc_nu_energy, "_mc_nu_energy/D");
 
 		return;
 	}
@@ -436,6 +429,7 @@ namespace ertool {
 		_mc_origin = -1;
 		_mc_time = -9e9;
 		_trigger_hack_time = std::numeric_limits<double>::max();
+		_mc_nu_energy = std::numeric_limits<double>::max();
 
 		return;
 

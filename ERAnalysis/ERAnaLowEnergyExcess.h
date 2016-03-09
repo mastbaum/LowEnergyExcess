@@ -128,7 +128,9 @@ namespace ertool {
         double _vertex_energy; /// Summed energy of all things passing within 5cm of vertex, excluding the electron
         int _mc_origin;           /// mctruth/mctrack/mcshower Origin (==2 if from a cosmic)
         double _mc_time;          /// ertool::Shower._time for the single electron
+        double _mc_nu_energy;     /// true neutrino energy if there is a neutrino
         double _trigger_hack_time; /// randomly selected cosmic track arrival time
+
         
         // prepare TTree with variables
         void PrepareTreeVariables();

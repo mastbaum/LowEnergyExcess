@@ -42,7 +42,7 @@ def optimizeTheta(mytheta,myX,myy,mylambda=0.):
 	result = optimize.fmin(computeCost, x0=mytheta, args=(myX, myy, mylambda), maxiter=400, full_output=True)
 	return result[0], result[1]
 
-def computeHypothesis(dfs):
+def computeHypothesis(dfs,input_theta=None):
 	""" 
 	Input is a(n) (ordered) dictionary of dataframes as described in the header
 	This function modifies the dataframes directly, adding a column called "hypothesis"
@@ -50,6 +50,8 @@ def computeHypothesis(dfs):
 	#First add another column to the dataframes, computed from existing columns
 	for key in dfs.keys():
 		dfs[key]['ptoverp'] = dfs[key]['_nu_pt']/dfs[key]['_nu_p']
+                dfs[key] = dfs[key].query('ptoverp > 0 and ptoverp <= 1')
+
 
 	#Build the feature matrix, X, from cosmic samples (with y = 0) and nue samples (with y = 1)
 	cosX = dfs['cosmic'][['ptoverp', '_y_vtx']].as_matrix()
@@ -81,7 +83,12 @@ def computeHypothesis(dfs):
 
 	#Plug in a random initial theta and solve for the coefficients:
 	initial_theta = np.zeros((Xnorm.shape[1],1))
-	theta, mincost = optimizeTheta(initial_theta,Xnorm,y)
+        if input_theta:
+                theta = np.array(input_theta)
+                print "You input theta! Theta type is ",type(theta)
+        else:
+                theta, mincost = optimizeTheta(initial_theta,Xnorm,y)
+
 
 	#Now that we have an optimized theta fit parameter vector, add hypothesis as a column to each df
 	#Hacky insert 0 in stored feature mean and 1 in stored feature stds
