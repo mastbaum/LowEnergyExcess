@@ -1,0 +1,9 @@
+reco
+/Users/davidkaleko/larlite/UserDev/LArLiteApp/RecoEmulatorApp/mac/recoemu_master_TNfinal.fcl
+/Users/davidkaleko/Data/larlite/mcc7_022316/scan_prodcosmics_corsika_cmc_uboone_mcc7_detsim_v1/larlite_mcinfo_0000.root
+/Users/davidkaleko/Data/larlite/mcc7_022316/scan_prodcosmics_corsika_cmc_uboone_mcc7_detsim_v1/larlite_mcinfo_0001.root
+/Users/davidkaleko/Data/larlite/mcc7_022316/scan_prodcosmics_corsika_cmc_uboone_mcc7_detsim_v1/larlite_mcinfo_0002.root
+/Users/davidkaleko/Data/larlite/mcc7_022316/scan_prodcosmics_corsika_cmc_uboone_mcc7_detsim_v1/larlite_opreco_0000.root
+/Users/davidkaleko/Data/larlite/mcc7_022316/scan_prodcosmics_corsika_cmc_uboone_mcc7_detsim_v1/larlite_opreco_0001.root
+/Users/davidkaleko/Data/larlite/mcc7_022316/scan_prodcosmics_corsika_cmc_uboone_mcc7_detsim_v1/larlite_opreco_0002.root
+/Users/davidkaleko/larlite/UserDev/LowEnergyExcess/output/test_condor_reco_out.root

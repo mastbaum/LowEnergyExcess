@@ -56,14 +56,42 @@ filebase = '/Users/davidkaleko/Data/larlite/nevis_LEE_results/'
 # Whether you use perfect reco input or reco emulated input
 mc_or_reco = 'mc'
 
+# These are the file names that were output by your run script
+# You generally delete the *_larlite_out.root output files that pop out
+# If you only run on one or a few of these, comment out the lines
+# below that you do not run over
+# As an example, I have commented out the "cosmicoutoftime"
+# sample.
 filenames = OrderedDict([
 ('nue','nue/%s_alljobs_TNfinal.root'%(mc_or_reco)),
 ('numu','numu/%s_alljobs_TNfinal.root'%(mc_or_reco)),
 ('nc','nc/%s_alljobs_TNfinal.root'%(mc_or_reco)),
 ('bite','dirt/%s_alljobs_TNfinal.root'%(mc_or_reco)),
 ('cosmic','cosmic/%s_alljobs_TNfinal.root'%(mc_or_reco)),
-('cosmicoutoftime','cosmicoutoftime/%s_alljobs_TNfinal.root'%(mc_or_reco)),
-('lee','lee/%s_alljobs_TNfinal.root'%(mc_or_reco))])
+#('cosmicoutoftime','cosmicoutoftime/%s_alljobs_TNfinal.root'%(mc_or_reco)),
+('lee','lee/%s_alljobs_TNfinal.root'%(mc_or_reco))
+])
+
+
+# These weights are to scale to 6.6e20 POT
+# You may need to change the number of events generated
+# (how many events you ran over BEFORE any event filtering)
+# Keep the 'lee' weight at 1, but in the singleE_lee_selection
+# script, there you will need to input the number of events
+# you run over (AFTER the event filtering).
+# You may need to run over the lee sample once just to see
+# what number to put into that run script.
+scaling_weights = \
+{ 'nue' : 6.6e20/(3.1845e17*35880),
+ #(211,000 ms total exposure)/(7.2ms * 36600 evts generated)
+  'cosmic' : 211000/(7.25*36600), 
+   #'cosmic' : (1.056e6)/(36600),
+  'numu' : 6.6e20/((1.203e15)*98860),
+  'nc' : 6.6e20/(1.203e15*98860),
+  'bite' : 6.6e20/(1.203e15*98860),
+  'cosmicoutoftime': 6.6e20/(1.202e15*49820),
+  'lee' : 1 }
+
 
 treenames = { 'nue' : 'beamNuE',
              'cosmic' : 'cosmicShowers',
@@ -91,41 +119,24 @@ colors = { 'nue' : '#269729', #kGreen-2
           }
 
 
-# These weights are to scale to 6.6e20 POT
-# You may need to change the number of events generated
-# (how many events you ran over BEFORE any event filtering)
-# Keep the 'lee' weight at 1, but in the singleE_lee_selection
-# script, there you will need to input the number of events
-# you run over (AFTER the event filtering).
-# You may need to run over the lee sample once just to see
-# what number to put into that run script.
-scaling_weights = \
-{ 'nue' : 6.6e20/(3.1845e17*35880),
- #(211,000 ms total exposure)/(7.2ms * 36600 evts generated)
-  'cosmic' : 211000/(7.25*36600), 
-   #'cosmic' : (1.056e6)/(36600),
-  'numu' : 6.6e20/((1.203e15)*98860),
-  'nc' : 6.6e20/(1.203e15*98860),
-  'bite' : 6.6e20/(1.203e15*98860),
-  'cosmicoutoftime': 6.6e20/(1.202e15*49820),
-  'lee' : 1 }
-
 
 # Read in all the ttrees to pandas dataframes
 dfs = OrderedDict()
 for key, filename in filenames.iteritems():
     dfs.update( { key : pd.DataFrame( root2array( filebase + filename, treenames[key] ) ) } )
 
-#throw away intime cosmics from outoftime sample
-dfs['cosmicoutoftime']=dfs['cosmicoutoftime'].query('_mc_time<3100 or _mc_time>4700')
-#enforce the out of time cosmics truly come from cosmics
-dfs['cosmicoutoftime']=dfs['cosmicoutoftime'].query('_mc_origin == 2')
+if 'cosmicoutoftime' in dfs.keys():
+  #throw away intime cosmics from outoftime sample
+  dfs['cosmicoutoftime']=dfs['cosmicoutoftime'].query('_mc_time<3100 or _mc_time>4700')
+  #enforce the out of time cosmics truly come from cosmics
+  dfs['cosmicoutoftime']=dfs['cosmicoutoftime'].query('_mc_origin == 2')
 
 #Hack the open cosmics so they all flash in the middle of the BGW
 #(this is how we scale cosmics to total BGW exposure time..
 # this way we can just apply the same flashmatch cut and not have
 # to do any other gymnastics specific to this one sample)
-dfs['cosmic']['_flash_time'] = ((BGWstart+BGWend)/2.)
+if 'cosmic' in dfs.keys():
+  dfs['cosmic']['_flash_time'] = ((BGWstart+BGWend)/2.)
 
 # Uncomment this if you want to see what variables are stored in the dataframes
 #dfs['cosmic'].info()
