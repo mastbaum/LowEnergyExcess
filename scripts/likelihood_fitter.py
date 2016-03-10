@@ -50,8 +50,11 @@ def computeHypothesis(dfs,input_theta=None):
 	#First add another column to the dataframes, computed from existing columns
 	for key in dfs.keys():
 		dfs[key]['ptoverp'] = dfs[key]['_nu_pt']/dfs[key]['_nu_p']
+                denom = len(dfs[key]['ptoverp'])
                 dfs[key] = dfs[key].query('ptoverp > 0 and ptoverp <= 1')
-
+                num = len(dfs[key]['ptoverp'])
+                if denom-num:
+                        print "NOTE! In sample %s, you just dropped %d out of %d events."%(key,denom-num,denom)
 
 	#Build the feature matrix, X, from cosmic samples (with y = 0) and nue samples (with y = 1)
 	cosX = dfs['cosmic'][['ptoverp', '_y_vtx']].as_matrix()
