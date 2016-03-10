@@ -46,7 +46,7 @@ eventfilter = fmwk.MC_LEE_Filter()
 LEEana = ertool.ERAnaLowEnergyExcess()
 LEEana.SetTreeName("LEETree")
 LEEana.SetLEESampleMode(True)
-LEEana.SetLEENEvents(369)#427 # for current filter, with 1000 bnb intrinsic total events
+LEEana.SetLEENEvents(13302)#for 35880 intrinsic nues
 LEEana.SetLEEFilename(os.environ['LARLITE_USERDEVDIR']+'/LowEnergyExcess/LEEReweight/source/LEE_Reweight_plots.root')
 #Currently using the mcc6 input histogram even though it's not quite right,
 #because I can't get the mcc7 input histogram to work correctly with these low statistics

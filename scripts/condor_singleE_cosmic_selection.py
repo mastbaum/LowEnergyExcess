@@ -50,6 +50,10 @@ LEEana.SetTreeName("cosmicShowers")
 
 anaunit = GetERSelectionInstance()
 anaunit._mgr.ClearCfgFile()
+
+#DISBABLE x-shift if you are using open cosmics and scaling to total BGW exposure
+anaunit.setDisableXShift(True)
+
 if not use_reco:
 	anaunit._mgr.AddCfgFile(os.environ['LARLITE_USERDEVDIR']+'/SelectionTool/ERTool/dat/ertool_default.cfg')
 else:
