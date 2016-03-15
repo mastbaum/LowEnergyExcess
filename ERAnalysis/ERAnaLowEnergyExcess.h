@@ -78,7 +78,7 @@ namespace ertool {
         double EnuCaloMissingPt(const std::vector< ::ertool::NodeID_t >& Children, const ParticleGraph &graph);
 
         // Determine if the event is "simple" (1e, np, 0else)
-        bool isInteractionSimple(const Particle &singleE, const ParticleGraph &ps);
+        bool isInteractionSimple(const Particle &singleE, const ParticleGraph &ps, const EventData &data);
 
         /// Function to compute BITE relevant variables (in ttree) and fill them
         void FillBITEVariables(const Shower &singleE_shower, const Particle &p);

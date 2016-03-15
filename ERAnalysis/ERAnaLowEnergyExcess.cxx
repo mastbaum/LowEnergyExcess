@@ -148,7 +148,7 @@ namespace ertool {
 						_e_theta = singleE_shower.Dir().Theta();
 						_e_phi = singleE_shower.Dir().Phi();
 						_e_Edep = singleE_shower._energy;
-						_is_simple = isInteractionSimple(daught, graph);
+						_is_simple = isInteractionSimple(daught, graph, data);
 						_dedx = data.Shower(daught.RecoID())._dedx;
 
 						/// Fills _dist_2wall_shr and _dist_2wall_vtx
@@ -190,14 +190,14 @@ namespace ertool {
 				double BGW_center = 4.35;
 				for (auto const& flash : data.Flash()) {
 					if (flash.TotalPE() > 10.) {
-						if (fabs(flash._t - BGW_center) < fabs(flash_time_closest_to_bgw-BGW_center)) {
+						if (fabs(flash._t - BGW_center) < fabs(flash_time_closest_to_bgw - BGW_center)) {
 							flash_time_closest_to_bgw = flash._t;
 						}
 					}
 					// hacked_trig_times.push_back(flash._t);
 				}
 				_trigger_hack_time = flash_time_closest_to_bgw;
-				
+
 				// std::cout << "Neutrino reconstructed! Let's loop through particle graph" << std::endl;
 				for ( auto const & mc : mc_graph.GetParticleArray() ) {
 
@@ -213,7 +213,7 @@ namespace ertool {
 					// }
 
 
-					if (abs(mc.PdgCode()) == 12) 
+					if (abs(mc.PdgCode()) == 12)
 						_mc_nu_energy = mc.Energy();
 
 
@@ -477,19 +477,40 @@ namespace ertool {
 		return Enu;
 	}
 
-	bool ERAnaLowEnergyExcess::isInteractionSimple(const Particle &singleE, const ParticleGraph &ps) {
+	bool ERAnaLowEnergyExcess::isInteractionSimple(const Particle &singleE, const ParticleGraph &ps, const EventData &data) {
 
 		auto const &kids = ps.GetAllDescendantNodes(singleE.ID());
 		auto const &bros = ps.GetSiblingNodes(singleE.ID());
 
-		// Number of particles associated with this electron that are not protons, or the single e itself
-		size_t _n_else = 0;
-		for ( auto const& kid : kids )
-			if (ps.GetParticle(kid).PdgCode() != 2212) _n_else++;
-		for ( auto const& bro : bros )
-			if (ps.GetParticle(bro).PdgCode() != 2212) _n_else++;
+		// // Number of particles associated with this electron that are not protons, or the single e itself
+		// size_t _n_else = 0;
+		// for ( auto const& kid : kids )
+		// 	if (ps.GetParticle(kid).PdgCode() != 2212) _n_else++;
+		// for ( auto const& bro : bros )
+		// 	if (ps.GetParticle(bro).PdgCode() != 2212) _n_else++;
 
+		// return _n_else ? false : true;
+		size_t _n_else = 0;
+		for ( auto const& kid : kids ) {
+			auto part = ps.GetParticle(kid);
+			if (part.RecoType() == kTrack) {
+				if ( data.Track(part.RecoID()).Length() > 10. )
+					_n_else++;
+			}
+			if (part.RecoType() == kShower)
+				_n_else++;
+		}
+		for ( auto const& bro : bros ) {
+			auto part = ps.GetParticle(bro);
+			if (part.RecoType() == kTrack) {
+				if ( data.Track(part.RecoID()).Length() > 10. )
+					_n_else++;
+			}
+			if (part.RecoType() == kShower)
+				_n_else++;
+		}
 		return _n_else ? false : true;
+
 
 	}
 
