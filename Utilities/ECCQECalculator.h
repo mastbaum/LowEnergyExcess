@@ -43,7 +43,7 @@ namespace lee {
 
       /// Method using manually-input energy (IE if you smear energy first)
       /// Energy should be in MeV, direction can be (doesn't have to be) unit-normalized
-      static double ComputeECCQE(double energy, const std::vector<double> &lepton_dir);
+      static double ComputeECCQE(double energy, const std::vector<double> &lepton_dir, bool is_electron = true);
 
       /// Method using ERTool Shower
       static double ComputeECCQE(const ::ertool::Shower &ertshower);

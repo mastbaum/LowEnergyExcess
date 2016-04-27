@@ -24,7 +24,7 @@ namespace lee {
 
     }
 
-    double ECCQECalculator::ComputeECCQE(double energy, const std::vector<double> &lepton_dir) {
+    double ECCQECalculator::ComputeECCQE(double totalenergy, const std::vector<double> &lepton_dir, bool is_electron) {
 
       if ( lepton_dir.size() != 3 ) {
         std::cerr << "From ComputeECCQE: input direction vector doesn't have size 3! Quitting..." << std::endl;
@@ -35,11 +35,12 @@ namespace lee {
 
       double M_n = 939.565;    // MeV/c2
       double M_p = 938.272;    // MeV/c2
-      double M_e = 0.511;      // MeV/c2
+      double leptonmass = 0.511;      // MeV/c2
+      if(!is_electron) leptonmass = 105.6583;
       double bindingE = 30.0;  // MeV
 
-      double l_energy = energy;
-      double l_mom = pow(pow(l_energy, 2) - pow(M_e, 2), 0.5);
+      double l_energy = totalenergy;
+      double l_mom = pow(pow(l_energy, 2) - pow(leptonmass, 2), 0.5);
 
       // Only truth info goes into theta calculation
       double l_theta =
@@ -54,7 +55,7 @@ namespace lee {
                    );
 
       double nu_energy_num = pow(M_p, 2) - pow(M_n - bindingE, 2)
-                             - pow(M_e, 2) + 2.0 * (M_n - bindingE) * l_energy;
+                             - pow(leptonmass, 2) + 2.0 * (M_n - bindingE) * l_energy;
       double nu_energy_den = 2.0 * (M_n - bindingE - l_energy + l_mom * TMath::Cos(l_theta));
 
       // For a result in GEV, divide by 1000.
