@@ -51,7 +51,8 @@ default_plot_variable = '_e_nuReco_better'
 
 # Where the output files live that contain ttrees to plot from
 #filebase = os.environ['LARLITE_USERDEVDIR']+'/LowEnergyExcess/output/'
-filebase = '/Users/davidkaleko/Data/larlite/nevis_LEE_results/'
+#filebase = '/Users/davidkaleko/Data/larlite/nevis_LEE_results/'
+filebase = '/home/cp/mastbaum/sbn/lee/test/'
 
 # Whether you use perfect reco input or reco emulated input
 mc_or_reco = 'mc'
@@ -62,14 +63,24 @@ mc_or_reco = 'mc'
 # below that you do not run over
 # As an example, I have commented out the "cosmicoutoftime"
 # sample.
+#filenames = OrderedDict([
+#('nue','nue/%s_alljobs_TNfinal.root'%(mc_or_reco)),
+#('numu','numu/%s_alljobs_TNfinal.root'%(mc_or_reco)),
+#('nc','nc/%s_alljobs_TNfinal.root'%(mc_or_reco)),
+#('bite','dirt/%s_alljobs_TNfinal.root'%(mc_or_reco)),
+#('cosmic','cosmic/%s_alljobs_TNfinal.root'%(mc_or_reco)),
+##('cosmicoutoftime','cosmicoutoftime/%s_alljobs_TNfinal.root'%(mc_or_reco)),
+#('lee','lee/%s_alljobs_TNfinal.root'%(mc_or_reco))
+#])
+
 filenames = OrderedDict([
-('nue','nue/%s_alljobs_TNfinal.root'%(mc_or_reco)),
-('numu','numu/%s_alljobs_TNfinal.root'%(mc_or_reco)),
-('nc','nc/%s_alljobs_TNfinal.root'%(mc_or_reco)),
-('bite','dirt/%s_alljobs_TNfinal.root'%(mc_or_reco)),
-('cosmic','cosmic/%s_alljobs_TNfinal.root'%(mc_or_reco)),
+('nue','singleE_nue_selection_%s.root'%(mc_or_reco)),
+#('numu','singleE_numu_selection_%s.root'%(mc_or_reco)),
+('nc','singleE_nc_selection_%s.root'%(mc_or_reco)),
+#('bite','dirt/%s_alljobs_TNfinal.root'%(mc_or_reco)),
+('cosmic','singleE_cosmic_selection_%s.root'%(mc_or_reco)),
 #('cosmicoutoftime','cosmicoutoftime/%s_alljobs_TNfinal.root'%(mc_or_reco)),
-('lee','lee/%s_alljobs_TNfinal.root'%(mc_or_reco))
+#('lee','lee/%s_alljobs_TNfinal.root'%(mc_or_reco))
 ])
 
 

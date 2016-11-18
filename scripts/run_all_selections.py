@@ -1,43 +1,67 @@
-import os, datetime, sys
+#!/usr/bin/env python
 
-_use_reco = False
+'''Run all event selections.
 
-input_base = '/Users/davidkaleko/Data/larlite/joseph_LEE_files/'
-output_dir = '/Users/davidkaleko/larlite/UserDev/LowEnergyExcess/output/70KV/noxshift/mcinfo_only/'
-if _use_reco:
-	output_dir = '/Users/davidkaleko/larlite/UserDev/LowEnergyExcess/output/70KV/recoemmaster/with_reco_noenergysmear_retrained/'
+Based on run_all_selections.py by D. Kaleko.
 
+A. Mastbaum <mastbaum@uchicago.edu>, 2016/11/16
+'''
 
-cosmics_files =  input_base + 'osc_cosmics_70kv_all_mcinfo.root'
-cosmics_files += ' ' + input_base + 'osc_cosmics_70kv_all_opdata.root'
+import argparse
+import datetime
+import os
 
-if _use_reco:
-	# cosmics_files += ' ' + input_base + 'osc_cosmics_70kv_all_reco3d_fuzzyshower.root'
-	# cosmics_files += ' ' + input_base + 'osc_cosmics_70kv_all_reco3d_kalmanhitcc.root'
-	cosmics_files += ' ' + input_base + 'osc_cosmics_70kv_all_recoem_master_noshowereneegysmear.root'
+from singleE_selection import run
 
-dirt_files = '/Users/davidkaleko/Data/larlite/mcc7/mcc7_test_bnb_nu_v1/larlite_mcc7_test_bnb_nu_v1_mcinfo_all.root'
-dirt_files += ' /Users/davidkaleko/Data/larlite/mcc7/mcc7_test_bnb_nu_v1/larlite_mcc7_test_bnb_nu_v1_opreco_all.root'
+parser = argparse.ArgumentParser(description='Run all sample selection')
+parser.add_argument('-r', '--reco', action='store_true',
+                    help='Use reconstructed quantities')
+parser.add_argument('out_path', default='.', help='Output file path')
+parser.add_argument('in_path', default='.', help='Input file path')
+args = parser.parse_args()
 
-bnb_files =  input_base + 'osc_bnb_70kv_all_mcinfo.root'
-bnb_files += ' ' + input_base + 'osc_bnb_70kv_all_opdata.root'
+dev_path = os.getenv('LARLITE_USERDEVDIR')
+script_base = os.path.join(dev_path, 'LowEnergyExcess', 'scripts')
+script = os.path.join(script_base, 'singleE_%s_selection.py')
 
-if _use_reco:
-	# bnb_files += ' ' + input_base + 'osc_bnb_70kv_all_reco3d_fuzzyshower.root'
-	# bnb_files += ' ' + input_base + 'osc_bnb_70kv_all_reco3d_kalmanhitcc.root'
-	bnb_files += ' ' + input_base + 'osc_bnb_70kv_all_recoem_master_noshowereneegysmear.root'
-		
-lee_files = '/Users/davidkaleko/Data/larlite/LEE_generation/LEEgen_mcinfo_all.root'
-
-if _use_reco:
-	lee_files += ' /Users/davidkaleko/Data/larlite/LEE_generation/LEEgen_mcinfo_recoemtest.root'
+signals = {
+    'cosmic': [
+        os.path.join(args.in_path, 'scan_prodcosmics_corsika_cmc_uboone_mcc7_detsim_v2.root'),
+        os.path.join(args.in_path, 'scan_prodcosmics_corsika_cmc_uboone_mcc7_detsim_v2_recoemmaster_out.root'),
+    ],
+    'cosmicoutoftime': [
+        os.path.join(args.in_path, 'scan_prodgenie_bnb_nu_cosmic_uboone_mcc7_detsim_v1.root'),
+        os.path.join(args.in_path, 'scan_prodgenie_bnb_nu_cosmic_uboone_mcc7_detsim_v1_recoemmaster_out.root'),
+    ],
+    'nue': [
+        os.path.join(args.in_path, 'scan_prodgenie_bnb_intrinsic_nue_uboone_mcc7_detsim_v2.root'),
+        os.path.join(args.in_path, 'scan_prodgenie_bnb_intrinsic_nue_uboone_mcc7_detsim_v2_recoemmaster_out.root'),
+    ],
+    'numu': [
+        os.path.join(args.in_path, 'scan_prodgenie_bnb_nu_uboone_mcc7_detsim_v2.root'),
+        os.path.join(args.in_path, 'scan_prodgenie_bnb_nu_uboone_mcc7_detsim_v2_recoemmaster_out.root'),
+    ],
+    'nc': [
+        os.path.join(args.in_path, 'scan_prodgenie_bnb_nu_uboone_mcc7_detsim_v2.root'),
+        os.path.join(args.in_path, 'scan_prodgenie_bnb_nu_uboone_mcc7_detsim_v2_recoemmaster_out.root'),
+    ],
+    'dirt': [
+        os.path.join(args.in_path, 'scan_prodgenie_bnb_nu_uboone_mcc7_detsim_v2.root'),
+        os.path.join(args.in_path, 'scan_prodgenie_bnb_nu_uboone_mcc7_detsim_v2_recoemmaster_out.root'),
+    ],
+    'LEE': [
+        os.path.join(args.in_path, 'scan_prodgenie_bnb_intrinsic_nue_uboone_mcc7_detsim_v2.root'),
+        os.path.join(args.in_path, 'scan_prodgenie_bnb_intrinsic_nue_uboone_mcc7_detsim_v2_recoemmaster_out.root'),
+    ],
+}
 
 starttime = datetime.datetime.now()
-print "run_all_selections start time is",starttime
-if cosmics_files: os.system('python singleE_cosmic_selection.py %s %s %s'%('reco' if _use_reco else 'mc',cosmics_files,output_dir))
-if dirt_files: os.system('python singleE_dirt_selection.py %s %s %s'%('reco' if _use_reco else 'mc',dirt_files,output_dir))
-if bnb_files: os.system('python singleE_nc_selection.py %s %s %s'%('reco' if _use_reco else 'mc',bnb_files,output_dir))
-if bnb_files: os.system('python singleE_nue_selection.py %s %s %s'%('reco' if _use_reco else 'mc',bnb_files,output_dir))
-if bnb_files: os.system('python singleE_numu_selection.py %s %s %s'%('reco' if _use_reco else 'mc',bnb_files,output_dir))
-if lee_files: os.system('python singleE_LEE_selection.py %s %s %s'%('reco' if _use_reco else 'mc',lee_files,output_dir))
-print "run_all_selections total time duration is",datetime.datetime.now()-starttime
+
+for k, v in signals.items():
+    print '== Selection:', k, '=='
+    if not args.reco:
+        v = v[:1]
+    run(k, v, args.out_path, args.reco)
+    
+print 'Elapsed time:', datetime.datetime.now() - starttime
+
