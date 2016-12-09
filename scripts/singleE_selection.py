@@ -41,8 +41,7 @@ def run(sample, infiles, outpath, reco=False):
     proc.set_io_mode(fmwk.storage_manager.kBOTH)
 
     # Specify output ROOT file name
-    filename = os.path.splitext(os.path.basename(sys.argv[0]))[0]
-    filename += ('_%s' % 'reco' if reco else 'mc')
+    filename = 'singleE_%s_selection_%s' % (sample, 'reco' if reco else 'mc')
     outfile = os.path.join(outpath, filename)
 
     proc.set_ana_output_file(outfile + '.root')
@@ -56,6 +55,22 @@ def run(sample, infiles, outpath, reco=False):
 
     ana = ertool.ERAnaLowEnergyExcess()
     ana.SetTreeName(treename)
+
+    if sample == 'LEE':
+        ana.SetLEESampleMode(True)
+
+        # Set number of LEE events for the MC, after filtering
+        ana.SetLEENEvents(13302)
+
+        lee_file = \
+            os.path.join(os.environ['LARLITE_USERDEVDIR'], 'LowEnergyExcess',
+                         'LEEReweight', 'source', 'LEE_Reweight_plots.root')
+        ana.SetLEEFilename(lee_file)
+
+        # Currently using the mcc6 input histogram even though it's not quite
+        # right, because I can't get the mcc7 input histogram to work
+        # correctly with these low statistics - DK
+        ana.SetLEECorrHistName('initial_evis_uz_corr')
 
     anaunit = GetERSelectionInstance()
     anaunit._mgr.ClearCfgFile()
