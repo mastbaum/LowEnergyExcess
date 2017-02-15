@@ -20,7 +20,9 @@
 #include "TH1D.h"
 #include "TH2F.h"
 #include <string>
+#include "DataFormat/storage_manager.h"
 #include "DataFormat/mctruth.h"
+#include "DataFormat/mceventweight.h"
 // #include "ERToolBackend/ParticleID.h"
 #include "../../LArLiteApp/fluxRW/fluxRW.h"
 #include "GeoAlgo/GeoAABox.h"
@@ -65,6 +67,8 @@ namespace ertool {
         /// setting result tree name for running the LowEExcess plotting code
         void SetTreeName(const std::string& name) { _treename = name; }
 
+        void SetStorageManager(larlite::storage_manager* mgr) { _storage_manager = mgr; }
+
         //Set this to true if you're running over LEE sample (so it uses LEE reweighting package)
         void SetLEESampleMode(bool flag) { _LEESample_mode = flag; }
         // File with LEERW relevant histograms stored in it
@@ -86,6 +90,9 @@ namespace ertool {
         /// Function to compute BNB flux RW weight, or LEE weight (if in LEE mode)
         double GetWeight(const ParticleGraph mc_graph);
 
+        // keep movin'
+	std::vector<double> GetMCWeights();
+
         /// Function to compute various neutrino energy definitions and fill them
         void FillRecoNuEnergies(const Particle &nue, const ParticleGraph &ps, const EventData &data);
 
@@ -100,6 +107,7 @@ namespace ertool {
         double _e_nuReco;         /// Neutrino energy
         double _e_dep;            /// Neutrino energy
         double _weight;
+        std::vector<double> _mcweight;
         int _parentPDG;           /// true PDG of parent of the electron (only for running on MC)
         int _ptype;               /// neutrino ptype to further break down nue slice in stacked histo
         int _mcPDG;               /// true PDG of "single electron" (probably 11 or 22)
@@ -159,6 +167,7 @@ namespace ertool {
         std::string _LEE_corrhist_name = "";
 
     protected:
+        larlite::storage_manager* _storage_manager;
 
         ::lee::LEERW _rw;
         ::geoalgo::GeoAlgo _geoalg;

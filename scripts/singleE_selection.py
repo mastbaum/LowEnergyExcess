@@ -15,6 +15,7 @@ import argparse
 import os
 import sys
 
+from rootimport import ROOT
 from ROOT import larlite as fmwk
 from ROOT import ertool
 from singleE_config import GetERSelectionInstance
@@ -55,6 +56,7 @@ def run(sample, infiles, outpath, reco=False):
 
     ana = ertool.ERAnaLowEnergyExcess()
     ana.SetTreeName(treename)
+    ana.SetStorageManager(proc._storage)
 
     if sample == 'LEE':
         ana.SetLEESampleMode(True)

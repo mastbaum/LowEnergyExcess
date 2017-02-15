@@ -8,6 +8,7 @@ namespace ertool {
 	ERAnaLowEnergyExcess::ERAnaLowEnergyExcess(const std::string& name)
 		: AnaBase(name)
 		, _result_tree(nullptr)
+		, _storage_manager(nullptr)
 	{
 		PrepareTreeVariables();
 	}
@@ -181,6 +182,8 @@ namespace ertool {
 				// (note this also fills the _ptype variable)
 				_weight = GetWeight(mc_graph);
 
+				_mcweight = GetMCWeights();
+
 
 
 				// Make a vector of arrival time of all mctracks that pass thru the TPC
@@ -282,6 +285,31 @@ namespace ertool {
 
 	}
 
+	std::vector<double> ERAnaLowEnergyExcess::GetMCWeights() {
+		// get mceventweights please forgive me kazu
+		std::cout << "_storage_manager: " << _storage_manager << std::endl;
+		if (_storage_manager) {
+			larlite::event_mceventweight* wgh = _fluxRW.mcevent_weight(_storage_manager);
+			std::cout << "got mcwgh: " << wgh << ", event id: " << wgh->event_id() << ", size: " << wgh->size() << std::endl;
+			std::map<std::string, std::vector<double> > evwgh = wgh->at(0).GetWeights();
+			for (auto& it : evwgh) {
+				std::cout << it.first << ": ";
+				for (size_t j=0; j<fmin(it.second.size(), 10); j++) {
+					std::cout << it.second.at(j) << " ";
+				}
+				std::cout << std::endl;
+
+				// sure, piplus weights are nice
+				if (it.first.find("piplussplines") != std::string::npos) {
+					return it.second;
+				}
+			}
+		}
+
+		// oh well
+		return std::vector<double>();
+	}
+
 	double ERAnaLowEnergyExcess::GetWeight(const ParticleGraph mc_graph) {
 
 		double nu_E_GEV = 1.;
@@ -353,6 +381,7 @@ namespace ertool {
 		_result_tree->Branch("_e_nuReco_better", &_e_nuReco_better, "e_nuReco_better/D", 64000);
 		_result_tree->Branch("_e_dep", &_e_dep, "e_dep/D", 64000);
 		_result_tree->Branch("_weight", &_weight, "weight/D", 64000);
+		_result_tree->Branch("_mcweight", &_mcweight);
 		_result_tree->Branch("_ptype", &_ptype, "ptype/I", 64000);
 		_result_tree->Branch("_parentPDG", &_parentPDG, "parent_PDG/I", 64000);
 		_result_tree->Branch("_mcPDG", &_mcPDG, "mc_PDG/I", 64000);

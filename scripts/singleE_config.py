@@ -11,9 +11,9 @@ from seltool.pi0algDef import GetERAlgoPi0Instance
 def GetERSelectionInstance():
     # Make an instance of ERAlgoFlashMatch using defaults defined in
     # ertool_default(_mc).cfg
-    flashmatch_algo = ertool.ERAlgoFlashMatch()
-    flashmatch_algo.SetIgnoreShowers(False)
-    flashmatch_algo.SetIgnoreCosmics(True)
+    #flashmatch_algo = ertool.ERAlgoFlashMatch()
+    #flashmatch_algo.SetIgnoreShowers(False)
+    #flashmatch_algo.SetIgnoreCosmics(True)
 
     # Get Default CCSingleE Algorithm instance
     # this information is loaded from:
@@ -48,8 +48,7 @@ def GetERSelectionInstance():
     # energy of mcshower or reco shower is below this threshold. This has to
     # be above 0 or else the code may segfault. This is not a "physics cut".
     # Do not change this value unless you know what you are doing.
-    #Ecut = 50 # in MeV
-    Ecut = 10 #temporary trying this to see if it helps pi0 mids at low energy
+    Ecut = 10  # MeV
     
     anaunit = fmwk.ExampleERSelection()
     anaunit.SetShowerProducer(True, 'mcreco')
@@ -83,7 +82,7 @@ def GetERSelectionInstance():
     # flash-matcher because it only works for tracks! For now, flashmatch_algo
     # has to live after and it has to be an analysis cut. This will be changed
     # ASAP.
-    anaunit._mgr.AddAlgo(flashmatch_algo)
+    #anaunit._mgr.AddAlgo(flashmatch_algo)
 
     # Testing adding this... it looks for flashes shared b/t the neutrino and
     # others and potentially adds the "others" as children of the neutrino, or
